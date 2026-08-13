@@ -187,38 +187,42 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
       <div className="flex-1 w-full space-y-6">
         
         {/* Language Adaptation Banner if case language differs from active mode */}
-        {caseData && caseData.languageMode && caseData.languageMode !== langMode && (
-          <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-amber-900 shadow-sm">
-            <div className="flex items-center gap-2">
-              <Globe className="h-5 w-5 text-amber-600 shrink-0 animate-pulse" />
-              <div>
-                <p className="text-xs font-bold">
-                  {t(
-                    "இந்த வழக்கு வேறு மொழியில் பகுப்பாய்வு செய்யப்பட்டது.",
-                    "This case was analyzed in a different language mode."
-                  )}
-                </p>
-                <p className="text-[11px] text-amber-800 font-medium">
-                  {t(
-                    `வழக்கு மொழி: ${caseData.languageMode.toUpperCase()} | தற்போதைய தேர்வு: ${langMode.toUpperCase()}`,
-                    `Stored Case Mode: ${caseData.languageMode.toUpperCase()} | Active UI Mode: ${langMode.toUpperCase()}`
-                  )}
-                </p>
+        {(() => {
+          const storedLanguageMode = caseData?.languageMode || "ta";
+          if (!caseData || storedLanguageMode === langMode) return null;
+          return (
+            <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-amber-900 shadow-sm">
+              <div className="flex items-center gap-2">
+                <Globe className="h-5 w-5 text-amber-600 shrink-0 animate-pulse" />
+                <div>
+                  <p className="text-xs font-bold">
+                    {t(
+                      "இந்த வழக்கு வேறு மொழியில் பகுப்பாய்வு செய்யப்பட்டது.",
+                      "This case was analyzed in a different language mode."
+                    )}
+                  </p>
+                  <p className="text-[11px] text-amber-800 font-medium">
+                    {t(
+                      `வழக்கு மொழி: ${storedLanguageMode.toUpperCase()} | தற்போதைய தேர்வு: ${langMode.toUpperCase()}`,
+                      `Stored Case Mode: ${storedLanguageMode.toUpperCase()} | Active UI Mode: ${langMode.toUpperCase()}`
+                    )}
+                  </p>
+                </div>
               </div>
+              <button
+                type="button"
+                onClick={handleTranslateCase}
+                disabled={isTranslating}
+                className="px-3.5 py-1.5 bg-amber-600 text-white rounded-xl text-xs font-extrabold hover:bg-amber-700 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                {isTranslating
+                  ? t("மொழி மாற்றப்படுகிறது...", "Translating Case...")
+                  : t("தேர்ந்தெடுக்கப்பட்ட மொழியில் மாற்று", "Adapt Case to Active Language")}
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={handleTranslateCase}
-              disabled={isTranslating}
-              className="px-3.5 py-1.5 bg-amber-600 text-white rounded-xl text-xs font-extrabold hover:bg-amber-700 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0"
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              {isTranslating
-                ? t("மொழி மாற்றப்படுகிறது...", "Translating Case...")
-                : t("தேர்ந்தெடுக்கப்பட்ட மொழியில் மாற்று", "Adapt Case to Active Language")}
-            </button>
-          </div>
-        )}
+          );
+        })()}
         {translateError && (
           <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl font-medium">
             {translateError}
@@ -240,7 +244,7 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
                   <span>{caseData.module || caseData.stage0?.module || "Engine"}</span>
                 </span>
                 <span className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded">
-                  {t("வழக்கு ID", "Case ID")}: UK360-{caseData.stage0?.district?.toUpperCase().slice(0,3) || "TN"}-{caseData.id?.slice(-4) || "0000"}
+                  {t("வழக்கு ID", "Case ID")}: UK360-{(caseData.stage0?.district || "TN").toUpperCase().slice(0,3)}-{caseData.id?.slice(-4) || "0000"}
                 </span>
                 <span className="text-xs font-bold text-slate-600">
                   {t("சர்வே எண்", "Survey No")} #{caseData.stage0?.surveyNumber} • {caseData.stage0?.village}, {caseData.stage0?.district}

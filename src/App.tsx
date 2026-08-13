@@ -515,7 +515,8 @@ ${selectedCase.stage6?.available?.map(d => `✓ ${d}`).join("\n") || "N/A"}
 
   const ensureCaseLanguage = React.useCallback(async (canonicalCase: PropertyCase, targetLang: LanguageMode) => {
     if (!canonicalCase) return;
-    if (canonicalCase.languageMode === targetLang || canonicalCase.translatedVariants?.[targetLang]) {
+    const storedLangMode = canonicalCase.languageMode || "ta";
+    if (storedLangMode === targetLang || canonicalCase.translatedVariants?.[targetLang]) {
       return;
     }
 
@@ -583,7 +584,8 @@ ${selectedCase.stage6?.available?.map(d => `✓ ${d}`).join("\n") || "N/A"}
 
   const selectedCase = React.useMemo(() => {
     if (!rawSelectedCase) return undefined;
-    if (rawSelectedCase.languageMode === langMode) return rawSelectedCase;
+    const storedLangMode = rawSelectedCase.languageMode || "ta";
+    if (storedLangMode === langMode) return rawSelectedCase;
     if (rawSelectedCase.translatedVariants?.[langMode]) {
       return rawSelectedCase.translatedVariants[langMode];
     }
@@ -1244,7 +1246,7 @@ ${selectedCase.stage6?.available?.map(d => `✓ ${d}`).join("\n") || "N/A"}
                   <div className="flex flex-col xl:flex-row gap-6 items-start">
                     {/* Main Active Tab Content Area */}
                     <div className="flex-1 w-full min-w-0 transition-all duration-200">
-                      {activeTab === "analysis" && (
+                      {activeTab === "analysis" && selectedCase && (
                         <AnalysisDashboard 
                           key={selectedCase.id}
                           caseData={selectedCase} 
@@ -1252,14 +1254,14 @@ ${selectedCase.stage6?.available?.map(d => `✓ ${d}`).join("\n") || "N/A"}
                         />
                       )}
                       
-                      {activeTab === "brief" && (
+                      {activeTab === "brief" && selectedCase && (
                         <ClientReplyPanel 
                           key={selectedCase.id}
                           caseData={selectedCase}
                         />
                       )}
 
-                      {activeTab === "draft" && (
+                      {activeTab === "draft" && selectedCase && (
                         <DocumentDraftPanel 
                           key={selectedCase.id}
                           caseData={selectedCase}
@@ -1267,7 +1269,7 @@ ${selectedCase.stage6?.available?.map(d => `✓ ${d}`).join("\n") || "N/A"}
                         />
                       )}
 
-                      {activeTab === "precedents" && (
+                      {activeTab === "precedents" && selectedCase && (
                         <PrecedentAndStrategyPanel 
                           key={selectedCase.id}
                           caseData={selectedCase}

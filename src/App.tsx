@@ -18,7 +18,7 @@ import { UnikornLogo } from "./components/UnikornLogo";
 import { PWAInstallButton } from "./components/PWAInstallButton";
 import { usePWA } from "./lib/pwa";
 import { useLanguage, LanguageSelectorButton } from "./lib/languageContext";
-import { downloadDocumentAsPDF } from "./lib/pdfExport";
+import { downloadDocumentAsPDF, downloadCompleteCaseReportPDF } from "./lib/pdfExport";
 
 import { 
   Scale, FileText, CheckCircle, AlertTriangle, ArrowRight, Plus, 
@@ -413,11 +413,18 @@ export default function App() {
   };
 
   const [isDownloadingGlobalPDF, setIsDownloadingGlobalPDF] = useState(false);
+  const [showPdfMenu, setShowPdfMenu] = useState(false);
 
-  const handleGlobalPDFDownload = async () => {
+  const handleGlobalPDFDownload = async (mode: 'complete' | 'summary' | 'draft' | 'brief' = 'complete') => {
     if (!selectedCase) return;
     setIsDownloadingGlobalPDF(true);
+    setShowPdfMenu(false);
     try {
+      if (mode === 'complete') {
+        await downloadCompleteCaseReportPDF(selectedCase);
+        return;
+      }
+
       const caseTitle = selectedCase.intake?.clientName
         ? `${selectedCase.intake.clientName} - ${selectedCase.stage1?.category || "சட்ட வழக்கு"}`
         : selectedCase.stage1?.category || "சொத்து சட்ட வரைவு & ஆய்வறிக்கை";
@@ -425,10 +432,10 @@ export default function App() {
       let docTitle = caseTitle;
       let docContent = "";
 
-      if (activeTab === "draft") {
+      if (mode === "draft" || (activeTab === "draft" && mode !== "summary")) {
         docTitle = selectedCase.customDocumentDraft?.documentTitle || caseTitle;
         docContent = selectedCase.customDocumentDraft?.documentContent || "வரைவு உள்ளடக்கங்கள் இல்லை.";
-      } else if (activeTab === "brief") {
+      } else if (mode === "brief" || (activeTab === "brief" && mode !== "summary")) {
         docTitle = `வாடிக்கையாளர் தகவல் கையேடு (Client Brief) - ${caseTitle}`;
         docContent = `
 வழக்கு மனுதாரர்: ${selectedCase.intake?.clientName || "N/A"}
@@ -454,7 +461,7 @@ ${selectedCase.documentsRequired?.mandatory?.join("\n") || "N/A"}
 ${selectedCase.immediateAction?.within24Hours?.join("\n") || "N/A"}
         `.trim();
       } else {
-        docTitle = `சட்ட ஆய்வறிக்கை (Legal Analysis) - ${caseTitle}`;
+        docTitle = `சட்ட ஆய்வறிக்கை (Executive Case Summary) - ${caseTitle}`;
         docContent = `
 வழக்கு வகை: ${selectedCase.stage1?.category || "N/A"} (${selectedCase.stage1?.specificType || ""})
 முக்கிய பிரச்சனை சுருக்கம்: ${selectedCase.stage2?.realIssue || selectedCase.rawDescription || "N/A"}
@@ -474,15 +481,15 @@ ${selectedCase.stage6?.available?.map(d => `✓ ${d}`).join("\n") || "N/A"}
       let docType = selectedCase.stage1?.category || "Police / Legal Representation";
       let domain = "Property Law (Property360 Intelligence)";
 
-      if (activeTab === "draft") {
+      if (mode === "draft") {
         reportType = "AI LEGAL DRAFT";
         docType = selectedCase.stage1?.category ? `${selectedCase.stage1.category} / Petition` : "Representation Draft";
-      } else if (activeTab === "brief") {
+      } else if (mode === "brief") {
         reportType = "CLIENT BRIEF & ADVISORY";
         docType = "Client Executive Brief";
       } else {
-        reportType = "LEGAL INTELLIGENCE ANALYSIS";
-        docType = "Case Strategy & Risk Report";
+        reportType = "CASE EXECUTIVE SUMMARY";
+        docType = "Case Executive Brief";
       }
 
       await downloadDocumentAsPDF({
@@ -1020,22 +1027,84 @@ ${selectedCase.stage6?.available?.map(d => `✓ ${d}`).join("\n") || "N/A"}
                 </div>
 
                 {/* Right utility buttons */}
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleGlobalPDFDownload}
-                    disabled={isDownloadingGlobalPDF}
-                    className="p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white border border-indigo-500 rounded-xl shadow-3xs transition cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
-                    title="மனுவை PDF ஆகப் பதிவிறக்கவும் (Download PDF)"
-                  >
-                    {isDownloadingGlobalPDF ? (
-                      <RefreshCw className="h-4 w-4 animate-spin text-white" />
-                    ) : (
-                      <Download className="h-4 w-4 text-white" />
+                <div className="flex items-center gap-2 relative">
+                  <div className="relative inline-flex rounded-xl shadow-3xs">
+                    <button
+                      onClick={() => handleGlobalPDFDownload('complete')}
+                      disabled={isDownloadingGlobalPDF}
+                      className="p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white border border-indigo-500 rounded-l-xl transition cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                      title="முழுமையான வழக்கறிக்கை (Complete Case Report)"
+                    >
+                      {isDownloadingGlobalPDF ? (
+                        <RefreshCw className="h-4 w-4 animate-spin text-white" />
+                      ) : (
+                        <Download className="h-4 w-4 text-white" />
+                      )}
+                      <span className="text-[11px] font-extrabold hidden sm:inline">
+                        {isDownloadingGlobalPDF ? t("PDF தயாராகிறது...", "Generating PDF...") : t("முழு அறிக்கை (PDF)", "Complete Case Report")}
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => setShowPdfMenu(!showPdfMenu)}
+                      disabled={isDownloadingGlobalPDF}
+                      className="px-1.5 bg-indigo-700 hover:bg-indigo-800 text-white border border-l-0 border-indigo-500 rounded-r-xl transition cursor-pointer flex items-center justify-center disabled:opacity-50"
+                      title="PDF விருப்பங்கள் (PDF Export Options)"
+                    >
+                      <ChevronDown className="h-3.5 w-3.5 text-white" />
+                    </button>
+
+                    {showPdfMenu && (
+                      <div className="absolute right-0 top-full mt-1 w-64 bg-white rounded-xl shadow-xl border border-slate-200 z-50 p-1.5 text-xs text-slate-700">
+                        <div className="px-2 py-1.5 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                          {t("அறிக்கை வடிவங்கள் (PDF Formats)", "PDF Export Formats")}
+                        </div>
+                        <button
+                          onClick={() => handleGlobalPDFDownload('complete')}
+                          className="w-full text-left px-2.5 py-2 hover:bg-indigo-50 hover:text-indigo-900 rounded-lg flex items-center gap-2 font-bold cursor-pointer"
+                        >
+                          <FileText className="h-4 w-4 text-indigo-600" />
+                          <div>
+                            <div>{t("முழு அறிக்கை (Stages 00–12)", "Complete Case Report (Stages 00–12)")}</div>
+                            <div className="text-[10px] font-normal text-slate-500">{t("12 கட்டங்களின் முழுமையான சட்ட அறிக்கை", "Multi-page complete 12-stage dossier")}</div>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => handleGlobalPDFDownload('summary')}
+                          className="w-full text-left px-2.5 py-2 hover:bg-slate-100 rounded-lg flex items-center gap-2 font-semibold cursor-pointer"
+                        >
+                          <FileText className="h-4 w-4 text-slate-500" />
+                          <div>
+                            <div>{t("1-பக்க சுருக்கம்", "1-Page Case Summary")}</div>
+                            <div className="text-[10px] font-normal text-slate-500">{t("முக்கிய விவரங்கள் மட்டுமே", "Executive summary brief")}</div>
+                          </div>
+                        </button>
+                        {selectedCase?.customDocumentDraft && (
+                          <button
+                            onClick={() => handleGlobalPDFDownload('draft')}
+                            className="w-full text-left px-2.5 py-2 hover:bg-slate-100 rounded-lg flex items-center gap-2 font-semibold cursor-pointer border-t border-slate-100 mt-1 pt-1.5"
+                          >
+                            <Scale className="h-4 w-4 text-emerald-600" />
+                            <div>
+                              <div>{t("சட்ட மனு வரைவு (Draft)", "Legal Notice / Petition Draft")}</div>
+                              <div className="text-[10px] font-normal text-slate-500">{t("தயாரிக்கப்பட்ட சட்ட மனு வடிவமைப்பு", "Formatted petition document")}</div>
+                            </div>
+                          </button>
+                        )}
+                        {selectedCase?.clientFacingReply && (
+                          <button
+                            onClick={() => handleGlobalPDFDownload('brief')}
+                            className="w-full text-left px-2.5 py-2 hover:bg-slate-100 rounded-lg flex items-center gap-2 font-semibold cursor-pointer"
+                          >
+                            <User className="h-4 w-4 text-amber-600" />
+                            <div>
+                              <div>{t("வாடிக்கையாளர் கையேடு", "Client Action Brief")}</div>
+                              <div className="text-[10px] font-normal text-slate-500">{t("வாடிக்கையாளருக்கான தகவல் சுருக்கம்", "Client-facing action guide")}</div>
+                            </div>
+                          </button>
+                        )}
+                      </div>
                     )}
-                    <span className="text-[11px] font-extrabold hidden sm:inline">
-                      {isDownloadingGlobalPDF ? t("PDF தயாராகிறது...", "Generating PDF...") : t("PDF பதிவிறக்கம்", "Download PDF")}
-                    </span>
-                  </button>
+                  </div>
                   <button
                     onClick={() => setShowHistory(!showHistory)}
                     className={`p-2.5 border rounded-xl shadow-3xs transition cursor-pointer flex items-center gap-1.5 ${

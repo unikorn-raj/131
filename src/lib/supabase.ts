@@ -307,14 +307,11 @@ export const saveOrUpdateUserProfile = async (
     uid: userId,
     email: userInfo.email,
     display_name: userInfo.displayName || userInfo.email.split("@")[0],
-    displayName: userInfo.displayName || userInfo.email.split("@")[0],
     photo_url: userInfo.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${userId}&backgroundColor=6366f1`,
-    photoURL: userInfo.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${userId}&backgroundColor=6366f1`,
     plan: isSuperAdminUser ? "enterprise" : currentPlan,
     status: isSuperAdminUser ? "vip" : "active",
     role: isSuperAdminUser ? "superadmin" : "user",
     last_login_at: now,
-    lastLoginAt: now,
     updated_at: now
   };
 
@@ -330,8 +327,8 @@ export const saveOrUpdateUserProfile = async (
   return {
     uid: userId,
     email: userInfo.email,
-    displayName: profileData.displayName,
-    photoURL: profileData.photoURL,
+    displayName: profileData.display_name,
+    photoURL: profileData.photo_url,
     plan: profileData.plan as PlanType,
     status: profileData.status as AccountStatus,
     role: profileData.role as UserRole,
@@ -401,12 +398,18 @@ export const updateUserByAdmin = async (
   adminEmail: string
 ): Promise<void> => {
   const now = new Date().toISOString();
-  const updatePayload: any = {
-    ...updates,
+  const updatePayload: Record<string, any> = {
     updated_at: now
   };
-  if (updates.displayName) updatePayload.display_name = updates.displayName;
-  if (updates.photoURL) updatePayload.photo_url = updates.photoURL;
+  if (updates.displayName !== undefined) updatePayload.display_name = updates.displayName;
+  if (updates.photoURL !== undefined) updatePayload.photo_url = updates.photoURL;
+  if (updates.plan !== undefined) updatePayload.plan = updates.plan;
+  if (updates.status !== undefined) updatePayload.status = updates.status;
+  if (updates.role !== undefined) updatePayload.role = updates.role;
+  if (updates.customCaseLimit !== undefined) updatePayload.custom_case_limit = updates.customCaseLimit;
+  if (updates.adminNotes !== undefined) updatePayload.admin_notes = updates.adminNotes;
+  if (updates.caseCount !== undefined) updatePayload.case_count = updates.caseCount;
+  if (updates.lastLoginAt !== undefined) updatePayload.last_login_at = updates.lastLoginAt;
 
   try {
     await supabase.from(PROFILES_TABLE).update(updatePayload).or(`id.eq.${targetUid},uid.eq.${targetUid}`);

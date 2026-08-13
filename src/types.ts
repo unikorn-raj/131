@@ -267,6 +267,61 @@ export interface CaseHistoryEntry {
   description: string;
 }
 
+export type UpdateEventType = 
+  | "New Fact / Information" 
+  | "New Document" 
+  | "Court Notice / Order" 
+  | "Authority Action" 
+  | "New Event" 
+  | "General Update";
+
+export interface CaseUpdateEvent {
+  id: string;
+  timestamp: string;
+  type: UpdateEventType | string;
+  title: string;
+  description: string;
+  dateOfOccurrence?: string;
+  sourceAuthority?: string;
+  documentRef?: string;
+}
+
+export interface CaseAnalysisVersion {
+  versionNumber: number;
+  createdAt: string;
+  triggeredByEventId: string;
+  changedStages: number[];
+  summaryOfChanges: string;
+  previousRiskScore?: number;
+  newRiskScore?: number;
+  previousStrategy?: string;
+  newStrategy?: string;
+  evidenceGapsAdded?: string[];
+  evidenceGapsResolved?: string[];
+}
+
+export interface ImpactSummary {
+  newFacts: string[];
+  stagesAffected: number[];
+  evidenceImpact: string;
+  riskImpact: {
+    previousScore: number;
+    newScore: number;
+    explanation: string;
+  };
+  precedentImpact: string;
+  governmentOrderImpact?: string;
+  strategyImpact: {
+    previousStrategy: string;
+    newStrategy: string;
+    explanation: string;
+  };
+  evidenceGapsAdded: string[];
+  evidenceGapsResolved: string[];
+  recommendedNextActions: string[];
+  summaryOfChanges: string;
+}
+
 export interface PropertyCase {
   id: string;
   createdAt: string;
@@ -301,6 +356,8 @@ export interface PropertyCase {
     dual?: PropertyCase;
   };
   history?: CaseHistoryEntry[];
+  updates?: CaseUpdateEvent[];
+  versions?: CaseAnalysisVersion[];
 }
 
 export interface SavedCaseBrief {

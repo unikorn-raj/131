@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 import { PropertyCase, Stage1Data, Stage6Data } from "../types";
 import { RiskGauge } from "./StatWidgets";
 import { PrecedentAndStrategyPanel } from "./PrecedentAndStrategyPanel";
+import { CaseUpdateModal } from "./CaseUpdateModal";
 import { useLanguage } from "../lib/languageContext";
 import { 
   Scale, FileText, CheckCircle, AlertCircle, ArrowRight, MapPin, 
   User, ShieldAlert, Gavel, Calendar, IndianRupee, HelpCircle, FileCheck,
-  Landmark, ChevronRight, ShieldCheck, Sparkles, AlertTriangle, Globe
+  Landmark, ChevronRight, ShieldCheck, Sparkles, AlertTriangle, Globe, PlusCircle, Clock
 } from "lucide-react";
 
 interface AnalysisDashboardProps {
@@ -25,6 +26,7 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
   const [tempSpecificType, setTempSpecificType] = useState(caseData.stage1?.specificType || "");
   const [isTranslating, setIsTranslating] = useState(false);
   const [translateError, setTranslateError] = useState<string | null>(null);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
   useEffect(() => {
     if (caseData) {
@@ -263,16 +265,27 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
               </p>
             </div>
             
-            <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 self-start md:self-auto min-w-[150px]">
-              <div className="text-left flex-1">
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">
-                  {t("அச்சுறுத்தல் நிலை", "Threat Level")}
-                </span>
-                <span className="text-xs font-extrabold text-rose-700 block leading-tight">{caseData.stage9?.rating || "HIGH RISK"}</span>
-              </div>
-              <div className="text-right">
-                <span className="text-2xl font-black text-slate-900 leading-none">{caseData.stage9?.score || 45}</span>
-                <span className="text-[9px] text-slate-500 font-bold block">/100</span>
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsUpdateModalOpen(true)}
+                className="px-4 py-2.5 bg-purple-900 text-white rounded-xl text-xs font-black hover:bg-purple-800 transition flex items-center gap-2 cursor-pointer shadow-md"
+              >
+                <PlusCircle className="h-4 w-4 text-purple-300" />
+                <span>{t("➕ வழக்கு அப்டேட்", "➕ Update Case")}</span>
+              </button>
+
+              <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 self-start md:self-auto min-w-[140px]">
+                <div className="text-left flex-1">
+                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">
+                    {t("அச்சுறுத்தல் நிலை", "Threat Level")}
+                  </span>
+                  <span className="text-xs font-extrabold text-rose-700 block leading-tight">{caseData.stage9?.rating || "HIGH RISK"}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-2xl font-black text-slate-900 leading-none">{caseData.stage9?.score || 45}</span>
+                  <span className="text-[9px] text-slate-500 font-bold block">/100</span>
+                </div>
               </div>
             </div>
           </div>
@@ -696,6 +709,91 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
         <div id="stage-11" className="pt-2">
           <PrecedentAndStrategyPanel caseData={caseData} />
         </div>
+
+        {/* Case Updates & Impact History Panel */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-3 bg-purple-700 rounded mr-1"></span>
+              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <Clock className="h-4 w-4 text-purple-700" />
+                {t("வழக்கு அப்டேட்கள் & பதிப்புகள் வரலாறு", "Case Updates & Impact History")}
+              </h4>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsUpdateModalOpen(true)}
+              className="px-3.5 py-1.5 bg-purple-900 text-white text-xs font-bold rounded-xl hover:bg-purple-800 transition flex items-center gap-1.5 cursor-pointer shadow-sm"
+            >
+              <PlusCircle className="h-3.5 w-3.5 text-purple-300" />
+              <span>{t("➕ வழக்கு அப்டேட்", "➕ Update Case")}</span>
+            </button>
+          </div>
+
+          {Array.isArray(caseData.updates) && caseData.updates.length > 0 ? (
+            <div className="space-y-3">
+              {caseData.updates.map((evt, idx) => (
+                <div key={evt.id || idx} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-[10px] font-black text-purple-900 uppercase tracking-widest bg-purple-100 border border-purple-200 px-2 py-0.5 rounded">
+                      {evt.type}
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-semibold">
+                      {evt.timestamp ? new Date(evt.timestamp).toLocaleString() : ""}
+                    </span>
+                  </div>
+                  <h5 className="text-xs font-black text-slate-900 mt-1">{evt.title}</h5>
+                  <p className="text-xs text-slate-700 font-medium leading-relaxed">{evt.description}</p>
+                  {(evt.sourceAuthority || evt.documentRef || evt.dateOfOccurrence) && (
+                    <div className="flex flex-wrap gap-3 text-[10px] text-slate-500 font-bold pt-1">
+                      {evt.dateOfOccurrence && <span>{t("தேதி", "Date")}: {evt.dateOfOccurrence}</span>}
+                      {evt.sourceAuthority && <span>{t("துறை", "Authority")}: {evt.sourceAuthority}</span>}
+                      {evt.documentRef && <span>{t("ஆவண எண்", "Ref")}: {evt.documentRef}</span>}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-slate-500 italic font-medium p-4 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-center">
+              {t("இந்த வழக்கிற்கு இதுவரை எந்த புதிய அப்டேட்டும் சேர்க்கப்படவில்லை. '➕ Update Case' பொத்தானை பயன்படுத்தி புதிய ஆவணம் அல்லது நிகழ்வைச் சேர்க்கவும்.", "No case updates recorded yet. Click '➕ Update Case' to record new documents or events.")}
+            </p>
+          )}
+
+          {Array.isArray(caseData.versions) && caseData.versions.length > 0 && (
+            <div className="pt-3 border-t border-slate-200 space-y-2">
+              <span className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider block">
+                {t("AI பகுப்பாய்வு பதிப்புகள் (Versions)", "AI Analysis Versions")}
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                {caseData.versions.map((ver, idx) => (
+                  <div key={ver.versionNumber || idx} className="p-3 bg-purple-50/60 border border-purple-200 rounded-xl space-y-1">
+                    <div className="flex items-center justify-between text-[10px] font-black text-purple-900">
+                      <span>Version v{ver.versionNumber}</span>
+                      <span>{ver.createdAt ? new Date(ver.createdAt).toLocaleDateString() : ""}</span>
+                    </div>
+                    <p className="text-[11px] text-purple-950 font-bold">{ver.summaryOfChanges}</p>
+                    <div className="text-[10px] text-purple-800 font-semibold flex items-center justify-between pt-1">
+                      <span>Risk: {ver.previousRiskScore ?? "-"}% -&gt; {ver.newRiskScore ?? "-"}%</span>
+                      <span>Stages: {(ver.changedStages || []).join(", ")}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Case Update Modal */}
+        <CaseUpdateModal
+          caseData={caseData}
+          isOpen={isUpdateModalOpen}
+          onClose={() => setIsUpdateModalOpen(false)}
+          onApplyUpdate={(updatedCase, historyDesc) => {
+            onUpdateCase(updatedCase, historyDesc);
+            setIsUpdateModalOpen(false);
+          }}
+        />
 
       </div>
 

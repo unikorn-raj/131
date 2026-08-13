@@ -17,7 +17,9 @@ import {
   DocumentsRequired, 
   ImmediateAction, 
   ServicePackage, 
-  CustomDocumentDraft 
+  CustomDocumentDraft,
+  CaseUpdateEvent,
+  CaseAnalysisVersion
 } from "../types";
 
 /**
@@ -314,6 +316,16 @@ export function normalizePropertyCase(rawCase: any): PropertyCase {
     ? rawCase.history.filter((h: any) => h && typeof h === "object")
     : [];
 
+  // updates (always array)
+  const updates: CaseUpdateEvent[] = Array.isArray(rawCase.updates)
+    ? rawCase.updates.filter((u: any) => u && typeof u === "object")
+    : [];
+
+  // versions (always array)
+  const versions: CaseAnalysisVersion[] = Array.isArray(rawCase.versions)
+    ? rawCase.versions.filter((v: any) => v && typeof v === "object")
+    : [];
+
   // translatedVariants (default to {}, recursively normalize if present)
   const translatedVariants: any = {};
   if (rawCase.translatedVariants && typeof rawCase.translatedVariants === "object") {
@@ -354,6 +366,8 @@ export function normalizePropertyCase(rawCase: any): PropertyCase {
     languageMode,
     translatedVariants,
     history,
+    updates,
+    versions,
   };
 }
 
@@ -383,5 +397,7 @@ function createDefaultCase(id: string): PropertyCase {
     languageMode: "ta",
     translatedVariants: {},
     history: [],
+    updates: [],
+    versions: [],
   };
 }

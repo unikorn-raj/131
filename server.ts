@@ -1057,6 +1057,268 @@ Respond strictly in valid JSON matching the PropertyCase object structure.
   }
 });
 
+// Case Re-analysis Endpoint for Impact Re-analysis on Existing Cases
+app.post("/api/reanalyze", async (req: express.Request, res: express.Response): Promise<any> => {
+  try {
+    const { existingCase, newEvent, languageMode: reqLangMode, langMode } = req.body;
+
+    if (!existingCase || typeof existingCase !== "object") {
+      return res.status(400).json({ error: "existingCase object is required for re-analysis." });
+    }
+
+    if (!newEvent || !newEvent.title || !newEvent.description) {
+      return res.status(400).json({ error: "newEvent with title and description is required for re-analysis." });
+    }
+
+    // Ownership & Request Authentication Check
+    const caseOwnerId = existingCase.userId || existingCase.user_id;
+    const authHeader = req.headers.authorization;
+    let authenticatedUser: any = (req as any).user || null;
+
+    if (!authenticatedUser && authHeader && authHeader.startsWith("Bearer ") && supabaseServerClient) {
+      const token = authHeader.replace("Bearer ", "").trim();
+      if (token && token !== "undefined" && token !== "null") {
+        try {
+          const { data: { user } } = await supabaseServerClient.auth.getUser(token);
+          if (user) authenticatedUser = user;
+        } catch (e) {
+          // Ignore token retrieval failure here; handled explicitly below
+        }
+      }
+    }
+
+    if (caseOwnerId) {
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ error: "Unauthenticated: Missing authorization token for user-owned case." });
+      }
+      if (!authenticatedUser) {
+        return res.status(401).json({ error: "Unauthenticated: Invalid or expired authentication token." });
+      }
+      const callerId = authenticatedUser.id || authenticatedUser.uid;
+      const isSuperAdmin = checkIsSuperAdminServer(
+        authenticatedUser.email,
+        authenticatedUser.role || authenticatedUser.app_metadata?.role || authenticatedUser.user_metadata?.role
+      );
+      if (callerId !== caseOwnerId && !isSuperAdmin) {
+        return res.status(403).json({ error: "Unauthorized: You do not have permission to re-analyze this case." });
+      }
+    }
+
+    const rawLang = reqLangMode || langMode || existingCase.languageMode || "dual";
+    const languageMode = (rawLang === "ta" || rawLang === "tamil") ? "ta" : (rawLang === "en" || rawLang === "english") ? "en" : "dual";
+
+    const safeNewEvent = {
+      type: sanitizePromptInput(String(newEvent.type || "General Update").slice(0, 100)),
+      title: sanitizePromptInput(String(newEvent.title).slice(0, 200)),
+      description: sanitizePromptInput(String(newEvent.description).slice(0, 5000)),
+      dateOfOccurrence: sanitizePromptInput(String(newEvent.dateOfOccurrence || "").slice(0, 50)),
+      sourceAuthority: sanitizePromptInput(String(newEvent.sourceAuthority || "").slice(0, 100)),
+      documentRef: sanitizePromptInput(String(newEvent.documentRef || "").slice(0, 100)),
+    };
+
+    const ai = getGeminiClient();
+
+    const prompt = `
+You are the Master Legal AI Engine for the UNIKORN360 / NILAM360 PROPERTY & DISPUTE ANALYSIS PLATFORM.
+
+An advocate/client is updating an existing property case with a NEW FACT / EVENT / DOCUMENT / COURT ORDER.
+
+### EXISTING PROPERTY CASE CONTEXT:
+- Title / Survey: ${existingCase.intake?.surveyNumber || "Property Case"}
+- Workspace / SubWorkspace: ${existingCase.intake?.workspace || "Citizen360"} / ${existingCase.intake?.subWorkspace || "Property360"}
+- Client Name: ${existingCase.intake?.clientName || "Client"}
+- Current Risk Score: ${existingCase.stage9?.score ?? 50}%
+- Current Legal Route: ${typeof existingCase.stage12 === "object" ? (existingCase.stage12?.strongestLegalRoute?.routeName || existingCase.stage12?.strongestLegalRoute) : "Standard Legal Route"}
+- Core Legal Issue: ${existingCase.stage2?.realIssue || "Property dispute"}
+
+### NEW CASE UPDATE EVENT:
+- Type: ${safeNewEvent.type}
+- Title: ${safeNewEvent.title}
+- Description: ${safeNewEvent.description}
+- Date: ${safeNewEvent.dateOfOccurrence || "N/A"}
+- Source Authority: ${safeNewEvent.sourceAuthority || "N/A"}
+- Document Ref: ${safeNewEvent.documentRef || "N/A"}
+
+### ACTIVE LANGUAGE MODE: ${languageMode}
+
+---
+
+### INSTRUCTIONS:
+Analyze the legal impact of this NEW EVENT on the existing case.
+Do NOT attempt to recreate the full PropertyCase object. Return ONLY an explicit impact patch in JSON.
+
+Respond in valid JSON with exactly two top-level keys: "impactSummary" and "changes".
+
+1. "impactSummary" (OBJECT - REQUIRED):
+   - "whatChanged": Short explanation of what changed in the case due to this update.
+   - "stagesAffected": Array of numbers corresponding to affected stages (e.g. [6, 9, 11, 12]).
+   - "whyChanged": Detailed explanation of why these stages were impacted.
+   - "riskBefore": Integer (0-100) prior risk score.
+   - "riskAfter": Integer (0-100) new risk score after evaluating this update.
+   - "previousStrategy": Short summary of previous legal strategy.
+   - "newStrategy": Short summary of updated legal strategy.
+   - "resolvedEvidenceGaps": Array of strings (evidence gaps now filled by this event).
+   - "newEvidenceGaps": Array of strings (new gaps/proof needed following this event).
+   - "nextActions": Array of strings (immediate action steps recommended now).
+
+2. "changes" (OBJECT - REQUIRED):
+   Only include keys for stages that ACTUALLY changed. If a stage did not change, omit it or set it to null.
+   Supported keys in "changes":
+   - "stage6": Updated Stage 06 Evidence object ({ available, missing, documentary, electronic, witnesses, officialRecords, evidenceStrength }) or null
+   - "stage9": Updated Stage 09 Risk object ({ factors, score, rating, limitationStatus, urgencyLevel }) or null
+   - "stage11": Updated Stage 11 Precedent Intelligence object or null
+   - "stage12": Updated Stage 12 Strategy Simulator object or null
+   - "clientFacingReply": Updated client facing reply object ({ problemIdentified, legalPosition, immediateNextStep, expectedAuthority, estimatedTimeline }) or null
+   - "immediateAction": Updated immediate action object ({ within24Hours, within7Days, within30Days }) or null
+
+CRITICAL LANGUAGE REQUIREMENT: All text in impactSummary and changes must strictly adhere to the requested languageMode (${languageMode}).
+`;
+
+    const reanalyzeResponseSchema = {
+      type: Type.OBJECT,
+      required: ["impactSummary", "changes"],
+      properties: {
+        impactSummary: {
+          type: Type.OBJECT,
+          required: [
+            "whatChanged",
+            "stagesAffected",
+            "whyChanged",
+            "riskBefore",
+            "riskAfter",
+            "previousStrategy",
+            "newStrategy",
+            "resolvedEvidenceGaps",
+            "newEvidenceGaps",
+            "nextActions"
+          ],
+          properties: {
+            whatChanged: { type: Type.STRING },
+            stagesAffected: { type: Type.ARRAY, items: { type: Type.INTEGER } },
+            whyChanged: { type: Type.STRING },
+            riskBefore: { type: Type.INTEGER },
+            riskAfter: { type: Type.INTEGER },
+            previousStrategy: { type: Type.STRING },
+            newStrategy: { type: Type.STRING },
+            resolvedEvidenceGaps: { type: Type.ARRAY, items: { type: Type.STRING } },
+            newEvidenceGaps: { type: Type.ARRAY, items: { type: Type.STRING } },
+            nextActions: { type: Type.ARRAY, items: { type: Type.STRING } }
+          }
+        },
+        changes: {
+          type: Type.OBJECT,
+          properties: {
+            stage6: { type: Type.OBJECT },
+            stage9: { type: Type.OBJECT },
+            stage11: { type: Type.OBJECT },
+            stage12: { type: Type.OBJECT },
+            clientFacingReply: { type: Type.OBJECT },
+            immediateAction: { type: Type.OBJECT }
+          }
+        }
+      }
+    };
+
+    const response = await generateContentWithRetry(ai, {
+      model: "gemini-3.6-flash",
+      contents: prompt,
+      config: {
+        temperature: 0.2,
+        responseMimeType: "application/json",
+        responseSchema: reanalyzeResponseSchema
+      },
+    }, 3, 50000);
+
+    const text = response.text || "";
+    const parsed = cleanAndParseJson(text);
+
+    // Validate returned AI structure strictly before merging
+    const isValidStructure =
+      parsed &&
+      typeof parsed === "object" &&
+      parsed.impactSummary &&
+      typeof parsed.impactSummary === "object" &&
+      typeof parsed.impactSummary.whatChanged === "string" &&
+      Array.isArray(parsed.impactSummary.stagesAffected) &&
+      typeof parsed.impactSummary.whyChanged === "string" &&
+      typeof parsed.impactSummary.riskBefore === "number" &&
+      typeof parsed.impactSummary.riskAfter === "number" &&
+      typeof parsed.impactSummary.previousStrategy === "string" &&
+      typeof parsed.impactSummary.newStrategy === "string" &&
+      Array.isArray(parsed.impactSummary.resolvedEvidenceGaps) &&
+      Array.isArray(parsed.impactSummary.newEvidenceGaps) &&
+      Array.isArray(parsed.impactSummary.nextActions) &&
+      parsed.changes &&
+      typeof parsed.changes === "object";
+
+    if (!isValidStructure) {
+      return res.status(422).json({
+        error: "Invalid or malformed AI impact re-analysis response structure."
+      });
+    }
+
+    const changes = parsed.changes || {};
+
+    // Server-side patch merging onto existingCase to preserve all unchanged stages byte-for-byte
+    const mergedCase = {
+      ...existingCase,
+      stage6: changes.stage6 && typeof changes.stage6 === "object" ? { ...existingCase.stage6, ...changes.stage6 } : existingCase.stage6,
+      stage9: changes.stage9 && typeof changes.stage9 === "object" ? { ...existingCase.stage9, ...changes.stage9 } : existingCase.stage9,
+      stage11: changes.stage11 && typeof changes.stage11 === "object" ? { ...existingCase.stage11, ...changes.stage11 } : existingCase.stage11,
+      stage12: changes.stage12 && typeof changes.stage12 === "object" ? { ...existingCase.stage12, ...changes.stage12 } : existingCase.stage12,
+      clientFacingReply: changes.clientFacingReply && typeof changes.clientFacingReply === "object" ? { ...existingCase.clientFacingReply, ...changes.clientFacingReply } : existingCase.clientFacingReply,
+      immediateAction: changes.immediateAction && typeof changes.immediateAction === "object" ? { ...existingCase.immediateAction, ...changes.immediateAction } : existingCase.immediateAction,
+    };
+
+    const impactSummary = {
+      newFacts: [safeNewEvent.title],
+      stagesAffected: parsed.impactSummary.stagesAffected,
+      evidenceImpact: parsed.impactSummary.whatChanged || "Evidence assessment updated.",
+      riskImpact: {
+        previousScore: parsed.impactSummary.riskBefore,
+        newScore: parsed.impactSummary.riskAfter,
+        explanation: parsed.impactSummary.whyChanged,
+      },
+      precedentImpact: "Relevant precedents re-evaluated based on new fact.",
+      governmentOrderImpact: "N/A",
+      strategyImpact: {
+        previousStrategy: parsed.impactSummary.previousStrategy,
+        newStrategy: parsed.impactSummary.newStrategy,
+        explanation: parsed.impactSummary.whyChanged,
+      },
+      evidenceGapsAdded: parsed.impactSummary.newEvidenceGaps,
+      evidenceGapsResolved: parsed.impactSummary.resolvedEvidenceGaps,
+      recommendedNextActions: parsed.impactSummary.nextActions,
+      summaryOfChanges: parsed.impactSummary.whatChanged,
+      whatChanged: parsed.impactSummary.whatChanged,
+      whyChanged: parsed.impactSummary.whyChanged,
+      riskBefore: parsed.impactSummary.riskBefore,
+      riskAfter: parsed.impactSummary.riskAfter,
+      previousStrategy: parsed.impactSummary.previousStrategy,
+      newStrategy: parsed.impactSummary.newStrategy,
+      resolvedEvidenceGaps: parsed.impactSummary.resolvedEvidenceGaps,
+      newEvidenceGaps: parsed.impactSummary.newEvidenceGaps,
+      nextActions: parsed.impactSummary.nextActions,
+    };
+
+    return res.json({
+      mergedCase,
+      updatedCase: mergedCase,
+      impactSummary,
+      changes
+    });
+  } catch (error: any) {
+    console.error("Re-analysis Error:", error);
+    if (error?.message === "GEMINI_TIMEOUT" || error?.isTimeout) {
+      return res.status(504).json({
+        error: "Re-analysis timed out",
+        message: "The re-analysis request took too long to complete. Please try again."
+      });
+    }
+    return res.status(500).json({ error: "Failed to re-analyze case: " + (error?.message || "Unknown error") });
+  }
+});
+
 // Admin User Directory Endpoint
 const SUPER_ADMIN_EMAILS_SERVER = [
   "clearfile360@gmail.com",

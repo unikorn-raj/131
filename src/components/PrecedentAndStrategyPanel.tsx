@@ -128,13 +128,15 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
     }
   ];
 
-  const similarCases: CaseReferenceItem[] = rawSimilarCases || fallbackSimilarCases;
+  const similarCases: CaseReferenceItem[] = (rawSimilarCases && rawSimilarCases.length > 0)
+    ? rawSimilarCases
+    : fallbackSimilarCases;
 
   const filteredCases = issueFilter === "All" 
     ? similarCases 
-    : similarCases.filter(c => c.disputeIssueCategory?.toLowerCase().includes(issueFilter.toLowerCase()));
+    : similarCases.filter(c => (c.disputeIssueCategory || "").toLowerCase().includes(issueFilter.toLowerCase()));
 
-  const selectedCase = similarCases.find(c => c.caseId === selectedCaseId) || similarCases[0];
+  const selectedCase = similarCases.find(c => (c.caseId || c.id) === selectedCaseId) || similarCases[0] || {} as CaseReferenceItem;
 
   const successPercentage = stage12?.strongestLegalRoute?.successProbabilityPercentage || 85;
 
@@ -260,12 +262,17 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
               </h3>
 
               <div className="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
-                {filteredCases.map((c) => {
-                  const isSelected = selectedCase?.caseId === c.caseId;
+                {filteredCases.map((c, idx) => {
+                  const currentId = c.caseId || c.id || `case_${idx}`;
+                  const isSelected = (selectedCase?.caseId || selectedCase?.id) === currentId;
+                  const itemTitle = c.title || c.caseName || t("வழக்கு தலைப்பு கிடைக்கவில்லை", "Case Title Not Available");
+                  const itemCitation = c.citation || c.citationNumber || t("சான்றெண் பெறப்படவில்லை", "Citation Not Available");
+                  const itemCategory = c.disputeIssueCategory || (Array.isArray(c.issuesCompared) ? c.issuesCompared.join(", ") : "") || t("வகை குறிப்பிடப்படவில்லை", "Category Not Specified");
+                  
                   return (
                     <div
-                      key={c.caseId}
-                      onClick={() => setSelectedCaseId(c.caseId)}
+                      key={currentId}
+                      onClick={() => setSelectedCaseId(currentId)}
                       className={`p-3.5 rounded-2xl border transition-all cursor-pointer text-left ${
                         isSelected
                           ? "bg-purple-900/60 border-purple-500 shadow-md"
@@ -274,20 +281,20 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
                     >
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="text-[10px] font-mono font-bold text-amber-300 bg-amber-950/60 border border-amber-800 px-2 py-0.5 rounded">
-                          {c.citation}
+                          {itemCitation}
                         </span>
                         <span className="text-xs font-black text-emerald-400 flex items-center gap-1">
-                          <span>{c.similarityScore}%</span>
+                          <span>{c.similarityScore ?? 0}%</span>
                           <span className="text-[9px] text-slate-400 font-normal">{t("ஒற்றுமை", "Match")}</span>
                         </span>
                       </div>
 
                       <h4 className="text-xs font-bold text-white leading-snug line-clamp-2 mb-1">
-                        {c.title}
+                        {itemTitle}
                       </h4>
 
                       <p className="text-[10px] text-slate-300 line-clamp-1 font-medium">
-                        {c.disputeIssueCategory}
+                        {itemCategory}
                       </p>
                     </div>
                   );
@@ -300,17 +307,17 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
               <div className="border-b border-slate-700 pb-3 flex items-start justify-between gap-3">
                 <div>
                   <span className="text-[10px] font-mono font-bold text-amber-300 bg-amber-950 px-2.5 py-0.5 rounded border border-amber-800">
-                    {selectedCase.citation}
+                    {selectedCase.citation || selectedCase.citationNumber || t("சான்றெண் பெறப்படவில்லை", "Citation Not Available")}
                   </span>
                   <h3 className="text-sm font-bold text-white mt-1.5">
-                    {selectedCase.title}
+                    {selectedCase.title || selectedCase.caseName || t("வழக்கு தலைப்பு கிடைக்கவில்லை", "Case Title Not Available")}
                   </h3>
                   <p className="text-[11px] text-purple-300 font-semibold mt-0.5">
-                    {selectedCase.court} ({selectedCase.year})
+                    {[selectedCase.court, selectedCase.judge, selectedCase.year].filter(Boolean).join(" • ") || t("நீதிமன்ற விவரம் பெறப்படவில்லை", "Court Info Not Available")}
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <span className="text-xl font-black text-emerald-400">{selectedCase.similarityScore}%</span>
+                  <span className="text-xl font-black text-emerald-400">{selectedCase.similarityScore ?? 0}%</span>
                   <span className="text-[9px] text-slate-400 block font-bold">{t("ஒற்றுமை மதிப்பெண்", "Similarity Score")}</span>
                 </div>
               </div>
@@ -321,7 +328,7 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
                   {t("நிகழ்வு ஒற்றுமை (Factual Similarity)", "Factual Similarity")}
                 </span>
                 <p className="text-xs text-slate-200 leading-relaxed font-medium">
-                  {selectedCase.factualSimilarity}
+                  {selectedCase.factualSimilarity || selectedCase.whyItMatters || t("நிகழ்வு ஒற்றுமை விவரம் பெறப்படவில்லை", "Factual similarity details not available")}
                 </p>
               </div>
 
@@ -331,12 +338,23 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
                   {t("நீதிமன்றத்தின் முக்கிய சட்டத் தீர்ப்புரைகள் (Key Legal Holdings)", "Key Legal Holdings")}
                 </span>
                 <ul className="space-y-1.5 text-xs text-slate-200 font-medium">
-                  {selectedCase.keyLegalHoldings.map((h, idx) => (
-                    <li key={idx} className="flex items-start gap-2 bg-slate-900/50 p-2 rounded-lg border border-slate-700/50">
+                  {(Array.isArray(selectedCase.keyLegalHoldings) && selectedCase.keyLegalHoldings.length > 0) ? (
+                    selectedCase.keyLegalHoldings.map((h, idx) => (
+                      <li key={idx} className="flex items-start gap-2 bg-slate-900/50 p-2 rounded-lg border border-slate-700/50">
+                        <Gavel className="h-3.5 w-3.5 text-purple-400 mt-0.5 shrink-0" />
+                        <span>{h}</span>
+                      </li>
+                    ))
+                  ) : selectedCase.courtReasoningSummary ? (
+                    <li className="flex items-start gap-2 bg-slate-900/50 p-2 rounded-lg border border-slate-700/50">
                       <Gavel className="h-3.5 w-3.5 text-purple-400 mt-0.5 shrink-0" />
-                      <span>{h}</span>
+                      <span>{selectedCase.courtReasoningSummary}</span>
                     </li>
-                  ))}
+                  ) : (
+                    <li className="text-slate-400 text-xs italic bg-slate-900/30 p-2 rounded-lg">
+                      {t("முக்கிய சட்டத் தீர்ப்புரைகள் கிடைக்கவில்லை", "Key legal holdings not available")}
+                    </li>
+                  )}
                 </ul>
               </div>
 
@@ -346,7 +364,7 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
                   {t("இந்த வழக்கிற்கு இதன் பயன்பாடு (Strategic Value)", "Strategic Value for Current Case")}
                 </span>
                 <p className="text-xs text-purple-100 font-semibold leading-relaxed">
-                  {selectedCase.strategicValue}
+                  {selectedCase.strategicValue || selectedCase.whyItMatters || t("பயன்பாட்டு உத்தி விவரம் கிடைக்கவில்லை", "Strategic value not available")}
                 </p>
               </div>
             </div>

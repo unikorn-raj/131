@@ -663,8 +663,11 @@ ${languageInstruction}
                     type: Type.OBJECT,
                     properties: {
                       id: { type: Type.STRING },
+                      caseId: { type: Type.STRING },
                       caseName: { type: Type.STRING },
+                      title: { type: Type.STRING },
                       citationNumber: { type: Type.STRING },
+                      citation: { type: Type.STRING },
                       court: { type: Type.STRING },
                       judge: { type: Type.STRING },
                       year: { type: Type.STRING },
@@ -672,6 +675,10 @@ ${languageInstruction}
                       bench: { type: Type.STRING },
                       caseType: { type: Type.STRING },
                       similarityScore: { type: Type.INTEGER },
+                      disputeIssueCategory: { type: Type.STRING },
+                      keyLegalHoldings: { type: Type.ARRAY, items: { type: Type.STRING } },
+                      factualSimilarity: { type: Type.STRING },
+                      strategicValue: { type: Type.STRING },
                       factsComparison: {
                         type: Type.ARRAY,
                         items: {
@@ -743,6 +750,12 @@ ${languageInstruction}
             },
             stage12: {
               type: Type.OBJECT,
+              required: [
+                "priorityNextActions",
+                "evidenceGapsToFill",
+                "likelyOppositeCounterarguments",
+                "recommendedAdditionalProof"
+              ],
               properties: {
                 strongestLegalRoute: {
                   type: Type.OBJECT,
@@ -834,7 +847,9 @@ ${languageInstruction}
                 recommendedPackage: { type: Type.STRING },
                 deliverables: { type: Type.ARRAY, items: { type: Type.STRING } },
                 professionalFee: { type: Type.STRING },
-                expectedOutcome: { type: Type.STRING }
+                expectedOutcome: { type: Type.STRING },
+                feeRange: { type: Type.STRING },
+                recommendedTrack: { type: Type.STRING }
               }
             },
             customDocumentDraft: {

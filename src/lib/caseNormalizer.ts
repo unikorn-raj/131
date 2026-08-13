@@ -215,11 +215,75 @@ export function normalizePropertyCase(rawCase: any): PropertyCase {
     const rawS11 = rawCase.stage11;
     const rawSimilarCases = Array.isArray(rawS11.similarCases) ? rawS11.similarCases : [];
     
-    const similarCases = rawSimilarCases.map((sc: any) => {
+    const similarCases = rawSimilarCases.map((sc: any, idx: number) => {
       if (!sc || typeof sc !== "object") return sc;
+
+      // Normalize keyLegalHoldings: existing array or [courtReasoningSummary] if present
+      let keyLegalHoldings: string[] = [];
+      if (Array.isArray(sc.keyLegalHoldings) && sc.keyLegalHoldings.length > 0) {
+        keyLegalHoldings = ensureStringArray(sc.keyLegalHoldings);
+      } else if (typeof sc.courtReasoningSummary === "string" && sc.courtReasoningSummary.trim()) {
+        keyLegalHoldings = [sc.courtReasoningSummary.trim()];
+      }
+
+      // Normalize disputeIssueCategory: existing value or issuesCompared.join(", ")
+      let disputeIssueCategory = "";
+      if (typeof sc.disputeIssueCategory === "string" && sc.disputeIssueCategory.trim()) {
+        disputeIssueCategory = sc.disputeIssueCategory.trim();
+      } else if (Array.isArray(sc.issuesCompared) && sc.issuesCompared.length > 0) {
+        disputeIssueCategory = sc.issuesCompared.map((i: any) => String(i)).filter(Boolean).join(", ");
+      }
+
+      // Normalize factualSimilarity: existing value or summarize factsComparison
+      let factualSimilarity = "";
+      if (typeof sc.factualSimilarity === "string" && sc.factualSimilarity.trim()) {
+        factualSimilarity = sc.factualSimilarity.trim();
+      } else if (Array.isArray(sc.factsComparison) && sc.factsComparison.length > 0) {
+        factualSimilarity = sc.factsComparison
+          .map((f: any) => {
+            if (!f || typeof f !== "object") return String(f || "");
+            const feat = f.feature ? `${f.feature}: ` : "";
+            const curr = f.currentCase || "";
+            const ref = f.referenceCase || "";
+            if (curr && ref) return `${feat}${curr} vs ${ref}`;
+            return `${feat}${curr || ref}`;
+          })
+          .filter(Boolean)
+          .join("; ");
+      }
+
+      const caseId = String(sc.caseId || sc.id || `case_${idx + 1}`);
+      const title = String(sc.title || sc.caseName || "");
+      const citation = String(sc.citation || sc.citationNumber || "");
+      const court = String(sc.court || "");
+      const judge = String(sc.judge || "");
+      const year = sc.year || "";
+      const state = String(sc.state || "");
+      const bench = String(sc.bench || "");
+      const caseType = String(sc.caseType || "");
+      const similarityScore = typeof sc.similarityScore === "number" ? sc.similarityScore : 0;
+      const strategicValue = String(sc.strategicValue || sc.whyItMatters || "");
+
       return {
         ...sc,
-        keyLegalHoldings: ensureStringArray(sc.keyLegalHoldings),
+        caseId,
+        id: sc.id || caseId,
+        title,
+        caseName: sc.caseName || title,
+        citation,
+        citationNumber: sc.citationNumber || citation,
+        court,
+        judge,
+        year,
+        state,
+        bench,
+        caseType,
+        similarityScore,
+        disputeIssueCategory,
+        keyLegalHoldings,
+        factualSimilarity,
+        strategicValue,
+        whyItMatters: sc.whyItMatters || strategicValue,
         factsComparison: Array.isArray(sc.factsComparison) ? sc.factsComparison : [],
         issuesCompared: Array.isArray(sc.issuesCompared) ? sc.issuesCompared : [],
         legalPrinciples: ensureStringArray(sc.legalPrinciples),
@@ -236,7 +300,12 @@ export function normalizePropertyCase(rawCase: any): PropertyCase {
     stage11 = {
       ...rawS11,
       similarCases,
-      averageSimilarityScore: typeof rawS11.averageSimilarityScore === "number" ? rawS11.averageSimilarityScore : 85,
+      similarCasesCount: similarCases.length,
+      averageSimilarityScore: typeof rawS11.averageSimilarityScore === "number" 
+        ? rawS11.averageSimilarityScore 
+        : (similarCases.length > 0 
+            ? Math.round(similarCases.reduce((acc: number, c: any) => acc + (c.similarityScore || 0), 0) / similarCases.length) 
+            : 0),
       relevantStatutes: ensureStringArray(rawS11.relevantStatutes),
       authoritiesSummary: {
         ...rawAuth,
@@ -250,21 +319,81 @@ export function normalizePropertyCase(rawCase: any): PropertyCase {
   let stage12: Stage12StrategySimulator | undefined = undefined;
   if (rawCase.stage12 && typeof rawCase.stage12 === "object") {
     const rawS12 = rawCase.stage12;
+
+    const evidenceGapsToFill = Array.isArray(rawS12.evidenceGapsToFill)
+      ? rawS12.evidenceGapsToFill.map((eg: any) => {
+          if (eg && typeof eg === "object") {
+            return {
+              missingElement: String(eg.missingElement || ""),
+              howToObtain: String(eg.howToObtain || ""),
+              urgency: String(eg.urgency || "Medium"),
+            };
+          }
+          return { missingElement: String(eg || ""), howToObtain: "", urgency: "Medium" };
+        })
+      : [];
+
+    const priorityNextActions = Array.isArray(rawS12.priorityNextActions)
+      ? rawS12.priorityNextActions.map((pa: any, idx: number) => {
+          if (pa && typeof pa === "object") {
+            return {
+              stepNumber: typeof pa.stepNumber === "number" ? pa.stepNumber : idx + 1,
+              action: String(pa.action || ""),
+              targetAuthority: String(pa.targetAuthority || ""),
+              timeline: String(pa.timeline || ""),
+            };
+          }
+          return { stepNumber: idx + 1, action: String(pa || ""), targetAuthority: "", timeline: "" };
+        })
+      : [];
+
+    const likelyOppositeCounterarguments = Array.isArray(rawS12.likelyOppositeCounterarguments)
+      ? rawS12.likelyOppositeCounterarguments.map((ca: any) => {
+          if (ca && typeof ca === "object") {
+            return {
+              argument: String(ca.argument || ""),
+              rebuttalStrategy: String(ca.rebuttalStrategy || ""),
+            };
+          }
+          return { argument: String(ca || ""), rebuttalStrategy: "" };
+        })
+      : Array.isArray(rawS12.anticipatedCounterarguments)
+      ? rawS12.anticipatedCounterarguments.map((arg: any) => ({
+          argument: typeof arg === "string" ? arg : String(arg?.argument || ""),
+          rebuttalStrategy: typeof arg === "object" ? String(arg?.rebuttalStrategy || "") : ""
+        }))
+      : [];
+
+    const recommendedAdditionalProof = Array.isArray(rawS12.recommendedAdditionalProof)
+      ? rawS12.recommendedAdditionalProof.map((ap: any) => {
+          if (ap && typeof ap === "object") {
+            return {
+              type: String(ap.type || "Document"),
+              title: String(ap.title || ""),
+              purpose: String(ap.purpose || ""),
+            };
+          }
+          return { type: "Document", title: String(ap || ""), purpose: "" };
+        })
+      : [];
+
     stage12 = {
       ...rawS12,
       riskMitigationSteps: ensureStringArray(rawS12.riskMitigationSteps),
-      evidenceGapsToFill: ensureStringArray(rawS12.evidenceGapsToFill),
+      evidenceGapsToFill,
+      priorityNextActions,
+      likelyOppositeCounterarguments,
+      recommendedAdditionalProof,
       anticipatedCounterarguments: ensureStringArray(rawS12.anticipatedCounterarguments),
       timelineMilestones: Array.isArray(rawS12.timelineMilestones) ? rawS12.timelineMilestones : [],
-      nextSteps: ensureStringArray(rawS12.nextSteps),
+      mostPersuasivePrecedents: ensureStringArray(rawS12.mostPersuasivePrecedents),
       strongestLegalRoute: (rawS12.strongestLegalRoute && typeof rawS12.strongestLegalRoute === "object") 
         ? rawS12.strongestLegalRoute 
         : {
-            routeName: "High Court Writ Petition / Administrative Appeal",
-            justification: "Strong legal standing based on procedural violation.",
-            routeType: "Constitutional / Administrative",
-            successProbabilityPercentage: 85,
-            timeToResolutionEst: "3-6 months",
+            routeName: "",
+            justification: "",
+            routeType: "",
+            timeToResolutionEst: "",
           },
     };
   }
@@ -288,7 +417,10 @@ export function normalizePropertyCase(rawCase: any): PropertyCase {
   // servicePackage (deliverables arrays always arrays)
   const rawServicePkg = (rawCase.servicePackage && typeof rawCase.servicePackage === "object") ? rawCase.servicePackage : {};
   const servicePackage: ServicePackage = {
+    recommendedPackage: typeof rawServicePkg.recommendedPackage === "string" ? rawServicePkg.recommendedPackage : "",
     deliverables: ensureStringArray(rawServicePkg.deliverables),
+    professionalFee: typeof rawServicePkg.professionalFee === "string" ? rawServicePkg.professionalFee : "",
+    expectedOutcome: typeof rawServicePkg.expectedOutcome === "string" ? rawServicePkg.expectedOutcome : "",
     feeRange: typeof rawServicePkg.feeRange === "string" ? rawServicePkg.feeRange : "",
     recommendedTrack: typeof rawServicePkg.recommendedTrack === "string" ? rawServicePkg.recommendedTrack : "",
   };

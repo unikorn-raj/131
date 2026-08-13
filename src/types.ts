@@ -198,40 +198,55 @@ export interface Stage12StrategySimulator {
 }
 
 export interface ClientFacingReply {
-  problemIdentified: string;
-  legalPosition: string;
-  immediateNextStep: string;
-  expectedAuthority: string;
-  estimatedTimeline: string;
+  problemIdentified?: string;
+  legalPosition?: string;
+  immediateNextStep?: string;
+  expectedAuthority?: string;
+  estimatedTimeline?: string;
+  summary?: string;
+  actionableAdvice?: string;
+  keyFindings?: string[];
 }
 
 export interface DocumentsRequired {
-  mandatory: string[];
-  revenue: string[];
-  family: string[];
-  court: string[];
-  other: string[];
+  mandatory?: string[];
+  revenue?: string[];
+  family?: string[];
+  court?: string[];
+  other?: string[];
+  available?: string[];
+  missing?: string[];
+  optional?: string[];
 }
 
 export interface ImmediateAction {
-  within24Hours: string[];
-  within7Days: string[];
-  within30Days: string[];
+  within24Hours?: string[];
+  within7Days?: string[];
+  within30Days?: string[];
+  authorityToApproach?: string;
+  nextSteps?: string[];
+  timeframe?: string;
 }
 
 export interface ServicePackage {
-  recommendedPackage: string;
-  deliverables: string[];
-  professionalFee: string;
-  expectedOutcome: string;
+  recommendedPackage?: string;
+  deliverables?: string[];
+  professionalFee?: string;
+  expectedOutcome?: string;
+  feeRange?: string;
+  recommendedTrack?: string;
 }
 
 export interface CustomDocumentDraft {
-  documentTitle: string;
-  documentContent: string;
+  documentTitle?: string;
+  documentContent?: string;
+  title?: string;
+  category?: string;
+  content?: string;
   sha256Hash?: string;
   timestamp?: string;
   verificationUrl?: string;
+  sections?: any[];
 }
 
 export interface PropertyEvidenceFile {

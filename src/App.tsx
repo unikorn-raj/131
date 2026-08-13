@@ -19,6 +19,8 @@ import { PWAInstallButton } from "./components/PWAInstallButton";
 import { usePWA } from "./lib/pwa";
 import { useLanguage, LanguageSelectorButton, LanguageMode } from "./lib/languageContext";
 import { downloadDocumentAsPDF, downloadCompleteCaseReportPDF } from "./lib/pdfExport";
+import { normalizePropertyCase } from "./lib/caseNormalizer";
+import { CaseErrorBoundary } from "./components/CaseErrorBoundary";
 
 import { 
   Scale, FileText, CheckCircle, AlertTriangle, ArrowRight, Plus, 
@@ -146,7 +148,10 @@ export default function App() {
     try {
       const savedStr = localStorage.getItem(storageKey);
       if (savedStr) {
-        localCases = JSON.parse(savedStr);
+        const parsed = JSON.parse(savedStr);
+        if (Array.isArray(parsed)) {
+          localCases = parsed.map(normalizePropertyCase);
+        }
       }
     } catch (e) {
       console.error("Error reading local cases:", e);
@@ -158,11 +163,12 @@ export default function App() {
       try {
         const guestSavedStr = localStorage.getItem("unikorn360_cases_guest");
         if (guestSavedStr) {
-          const guestCases: PropertyCase[] = JSON.parse(guestSavedStr);
-          if (Array.isArray(guestCases) && guestCases.length > 0) {
+          const parsedGuest = JSON.parse(guestSavedStr);
+          if (Array.isArray(parsedGuest) && parsedGuest.length > 0) {
+            const guestCases: PropertyCase[] = parsedGuest.map(normalizePropertyCase);
             const caseMap = new Map<string, PropertyCase>();
-            localCases.forEach((c) => { if (c?.id) caseMap.set(c.id, c); });
-            guestCases.forEach((c) => { if (c?.id && !caseMap.has(c.id)) caseMap.set(c.id, c); });
+            localCases.forEach((c) => { if (c?.id) caseMap.set(c.id, normalizePropertyCase(c)); });
+            guestCases.forEach((c) => { if (c?.id && !caseMap.has(c.id)) caseMap.set(c.id, normalizePropertyCase(c)); });
             localCases = Array.from(caseMap.values()).sort(
               (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
             );
@@ -192,21 +198,21 @@ export default function App() {
 
           // Add local cases
           localCases.forEach((c) => {
-            if (c?.id) caseMap.set(c.id, c);
+            if (c?.id) caseMap.set(c.id, normalizePropertyCase(c));
           });
 
           // Add active memory state cases
           setCases((prevCases) => {
             prevCases.forEach((c) => {
-              if (c?.id) caseMap.set(c.id, c);
+              if (c?.id) caseMap.set(c.id, normalizePropertyCase(c));
             });
 
             // Add cloud cases (updating with latest cloud state if present)
             cloudCases.forEach((c) => {
-              if (c?.id) caseMap.set(c.id, c);
+              if (c?.id) caseMap.set(c.id, normalizePropertyCase(c));
             });
 
-            const merged = Array.from(caseMap.values()).sort(
+            const merged = Array.from(caseMap.values()).map(normalizePropertyCase).sort(
               (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
             );
 
@@ -1246,35 +1252,41 @@ ${selectedCase.stage6?.available?.map(d => `✓ ${d}`).join("\n") || "N/A"}
                   <div className="flex flex-col xl:flex-row gap-6 items-start">
                     {/* Main Active Tab Content Area */}
                     <div className="flex-1 w-full min-w-0 transition-all duration-200">
-                      {activeTab === "analysis" && selectedCase && (
-                        <AnalysisDashboard 
-                          key={selectedCase.id}
-                          caseData={selectedCase} 
-                          onUpdateCase={handleUpdateCase}
-                        />
-                      )}
-                      
-                      {activeTab === "brief" && selectedCase && (
-                        <ClientReplyPanel 
-                          key={selectedCase.id}
-                          caseData={selectedCase}
-                        />
-                      )}
+                      <CaseErrorBoundary
+                        caseId={selectedCase?.id}
+                        onBackToHistory={() => setSelectedCaseId(null)}
+                        t={t}
+                      >
+                        {activeTab === "analysis" && selectedCase && (
+                          <AnalysisDashboard 
+                            key={selectedCase.id}
+                            caseData={selectedCase} 
+                            onUpdateCase={handleUpdateCase}
+                          />
+                        )}
+                        
+                        {activeTab === "brief" && selectedCase && (
+                          <ClientReplyPanel 
+                            key={selectedCase.id}
+                            caseData={selectedCase}
+                          />
+                        )}
 
-                      {activeTab === "draft" && selectedCase && (
-                        <DocumentDraftPanel 
-                          key={selectedCase.id}
-                          caseData={selectedCase}
-                          onUpdateDraft={handleUpdateDraft}
-                        />
-                      )}
+                        {activeTab === "draft" && selectedCase && (
+                          <DocumentDraftPanel 
+                            key={selectedCase.id}
+                            caseData={selectedCase}
+                            onUpdateDraft={handleUpdateDraft}
+                          />
+                        )}
 
-                      {activeTab === "precedents" && selectedCase && (
-                        <PrecedentAndStrategyPanel 
-                          key={selectedCase.id}
-                          caseData={selectedCase}
-                        />
-                      )}
+                        {activeTab === "precedents" && selectedCase && (
+                          <PrecedentAndStrategyPanel 
+                            key={selectedCase.id}
+                            caseData={selectedCase}
+                          />
+                        )}
+                      </CaseErrorBoundary>
                     </div>
 
                     {/* History Sidebar Panel */}

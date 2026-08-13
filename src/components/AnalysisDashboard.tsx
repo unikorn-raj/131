@@ -28,8 +28,8 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
 
   useEffect(() => {
     if (caseData) {
-      setAvailableDocs(caseData.stage6?.available || []);
-      setMissingDocs(caseData.stage6?.missing || []);
+      setAvailableDocs(Array.isArray(caseData.stage6?.available) ? caseData.stage6.available : []);
+      setMissingDocs(Array.isArray(caseData.stage6?.missing) ? caseData.stage6.missing : []);
       setTempCategory(caseData.stage1?.category || "வருவாய் / Revenue");
       setTempSpecificType(caseData.stage1?.specificType || "");
     }
@@ -48,13 +48,17 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
         })
       });
       if (!res.ok) {
-        throw new Error("Failed to translate case data.");
+        throw new Error("Translation endpoint unavailable or returned an error.");
       }
       const translated = await res.json();
-      onUpdateCase(translated, `மொழி தேர்வு மாற்றப்பட்டது: ${langMode.toUpperCase()}`);
+      if (translated && typeof translated === "object" && translated.id) {
+        onUpdateCase(translated, `மொழி தேர்வு மாற்றப்பட்டது: ${langMode.toUpperCase()}`);
+      } else {
+        throw new Error("Invalid response from translation service.");
+      }
     } catch (err: any) {
-      console.error("Translation Error:", err);
-      setTranslateError(err.message || "Translation failed.");
+      console.warn("Translation Notice:", err);
+      setTranslateError(t("மொழிமாற்றம் தற்போது கிடைக்கவில்லை. அசல் வழக்குத் தரவு காண்பிக்கப்படுகிறது.", "Translation currently unavailable. Displaying original case content."));
     } finally {
       setIsTranslating(false);
     }
@@ -479,12 +483,12 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
               </span>
               {typeof caseData.stage5 === "object" ? (
                 <div className="text-left text-[10px] space-y-1">
-                  {caseData.stage5?.rightsViolated && caseData.stage5.rightsViolated.length > 0 && (
+                  {Array.isArray(caseData.stage5?.rightsViolated) && caseData.stage5.rightsViolated.length > 0 && (
                     <span className="block font-bold text-rose-700">
                       {t("உரிமை மீறல்", "Violated Rights")}: {caseData.stage5.rightsViolated.join(", ")}
                     </span>
                   )}
-                  {caseData.stage5?.dutiesBreached && caseData.stage5.dutiesBreached.length > 0 && (
+                  {Array.isArray(caseData.stage5?.dutiesBreached) && caseData.stage5.dutiesBreached.length > 0 && (
                     <span className="block font-medium text-slate-700">
                       {t("கடமை மீறல்", "Breached Duties")}: {caseData.stage5.dutiesBreached.join(", ")}
                     </span>

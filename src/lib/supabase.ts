@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient, User as SupabaseUser } from "@supabase/supabase-js";
 import { UserProfile, PlanType, AccountStatus, UserRole, AdminAuditLog } from "../types";
+import { normalizePropertyCase } from "./caseNormalizer";
 
 const supabaseUrl =
   (import.meta.env && import.meta.env.VITE_SUPABASE_URL) ||
@@ -273,12 +274,13 @@ export const fetchCloudCases = async (userId: string) => {
 
   return data.map((row: any) => {
     const baseCaseData = row.case_data && typeof row.case_data === "object" ? row.case_data : {};
-    return {
+    const rawObj = {
       ...baseCaseData,
       id: row.id || baseCaseData.id,
       createdAt: row.created_at || baseCaseData.createdAt,
       updatedAt: row.updated_at || baseCaseData.updatedAt
     };
+    return normalizePropertyCase(rawObj);
   });
 };
 

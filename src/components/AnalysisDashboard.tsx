@@ -138,10 +138,10 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
     : (typeof caseData.stage7 === "object" && caseData.stage7?.route ? caseData.stage7.route : []);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)_340px] gap-6 items-start text-slate-900 w-full min-w-0">
+    <div className="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_300px] min-[1440px]:grid-cols-[240px_minmax(0,1fr)_320px] gap-6 items-start text-slate-900 w-full min-w-0">
       
       {/* 1. Left Sidebar: Stage Navigation (Analysis Framework) */}
-      <nav className="w-full bg-white border border-slate-200 rounded-2xl flex flex-col p-4 shadow-sm sticky top-20 z-10 print:hidden no-print md:col-span-1">
+      <nav className="w-full bg-white border border-slate-200 rounded-2xl flex flex-col p-4 shadow-sm sticky top-20 z-10 print:hidden no-print lg:col-span-1">
         <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-200">
           <Scale className="h-4 w-4 text-purple-700" />
           <h2 className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">
@@ -798,7 +798,7 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
       </div>
 
       {/* 3. Right Sidebar: Recommended Packages & Billing */}
-      <aside id="stage-10" className="w-full bg-white border border-slate-200 p-5 rounded-2xl flex flex-col space-y-6 print:hidden no-print shadow-sm md:col-start-2 xl:col-start-3 sticky top-20">
+      <aside id="stage-10" className="w-full bg-white border border-slate-200 p-5 rounded-2xl flex flex-col space-y-6 print:hidden no-print shadow-sm lg:col-span-2 xl:col-span-1 xl:col-start-3 sticky top-20">
         
         <h2 className="text-[10px] font-extrabold text-slate-600 uppercase tracking-widest flex items-center gap-1.5">
           <Sparkles className="h-4 w-4 text-purple-700" />

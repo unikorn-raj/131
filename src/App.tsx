@@ -794,7 +794,7 @@ ${selectedCase.stage6?.available?.map(d => `✓ ${d}`).join("\n") || "N/A"}
       </header>
 
       {/* Main Body Grid */}
-      <div className="flex-1 max-w-7xl mx-auto px-6 py-6 w-full flex flex-col">
+      <div className="flex-1 w-full max-w-none px-4 sm:px-6 lg:px-8 py-6 flex flex-col min-w-0">
         
         {/* Workspace Aggregate Metrics */}
         {!selectedCase && !isCreatingNew && !isRAGExplorerActive && (
@@ -1735,7 +1735,7 @@ ${selectedCase.stage6?.available?.map(d => `✓ ${d}`).join("\n") || "N/A"}
 
       {/* Footer styled beautifully */}
       <footer className="bg-slate-950 border-t border-slate-800 py-5 mt-auto no-print">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-3 text-[11px] font-semibold text-slate-500">
+        <div className="w-full max-w-none px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-3 text-[11px] font-semibold text-slate-500">
           <div className="flex items-center gap-2">
             <UnikornLogo size="sm" showText={false} />
             <span className="text-slate-400 font-bold">

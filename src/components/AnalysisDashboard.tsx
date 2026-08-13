@@ -138,10 +138,10 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
     : (typeof caseData.stage7 === "object" && caseData.stage7?.route ? caseData.stage7.route : []);
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 items-start text-slate-900">
+    <div className="grid grid-cols-1 md:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[240px_minmax(0,1fr)_340px] gap-6 items-start text-slate-900 w-full min-w-0">
       
       {/* 1. Left Sidebar: Stage Navigation (Analysis Framework) */}
-      <nav className="w-full lg:w-64 bg-white border border-slate-200 rounded-2xl flex flex-col p-4 shrink-0 shadow-sm sticky top-20 z-10 print:hidden no-print">
+      <nav className="w-full bg-white border border-slate-200 rounded-2xl flex flex-col p-4 shadow-sm sticky top-20 z-10 print:hidden no-print md:col-span-1">
         <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-200">
           <Scale className="h-4 w-4 text-purple-700" />
           <h2 className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">
@@ -190,8 +190,8 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
       </nav>
 
       {/* 2. Central Case Data View */}
-      <div className="flex-1 w-full space-y-6">
-        
+      <div className="w-full min-w-0 space-y-6 md:col-start-2 xl:col-start-2">
+
         {/* Language Adaptation Banner if case language differs from active mode */}
         {(() => {
           const storedLanguageMode = caseData?.languageMode || "ta";
@@ -236,32 +236,32 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
         )}
 
         {/* Case Header Card */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm relative overflow-hidden">
-          <div className="pl-1 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm relative overflow-hidden min-w-0">
+          <div className="pl-1 flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex flex-wrap gap-2 items-center mb-1.5">
-                <span className="text-[10px] font-extrabold text-purple-900 uppercase tracking-wider bg-purple-100 border border-purple-200 px-2.5 py-0.5 rounded flex items-center gap-1">
+                <span className="text-[10px] font-extrabold text-purple-900 uppercase tracking-wider bg-purple-100 border border-purple-200 px-2.5 py-0.5 rounded flex flex-wrap items-center gap-1 max-w-full">
                   <span>AIEOS</span>
-                  <ChevronRight className="h-2.5 w-2.5 text-purple-500" />
+                  <ChevronRight className="h-2.5 w-2.5 text-purple-500 shrink-0" />
                   <span>Citizen360</span>
-                  <ChevronRight className="h-2.5 w-2.5 text-purple-500" />
+                  <ChevronRight className="h-2.5 w-2.5 text-purple-500 shrink-0" />
                   <span>{caseData.subWorkspace || caseData.stage0?.subWorkspace || "Property360"}</span>
-                  <ChevronRight className="h-2.5 w-2.5 text-purple-500" />
+                  <ChevronRight className="h-2.5 w-2.5 text-purple-500 shrink-0" />
                   <span>{caseData.module || caseData.stage0?.module || "Engine"}</span>
                 </span>
-                <span className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded">
+                <span className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded break-words">
                   {t("வழக்கு ID", "Case ID")}: UK360-{(caseData.stage0?.district || "TN").toUpperCase().slice(0,3)}-{caseData.id?.slice(-4) || "0000"}
                 </span>
-                <span className="text-xs font-bold text-slate-600">
+                <span className="text-xs font-bold text-slate-600 break-words [overflow-wrap:anywhere]">
                   {t("சர்வே எண்", "Survey No")} #{caseData.stage0?.surveyNumber} • {caseData.stage0?.village}, {caseData.stage0?.district}
                 </span>
               </div>
-              <h3 className="text-xl font-black text-slate-900 tracking-tight leading-none font-display">
+              <h3 className="text-xl font-black text-slate-900 tracking-tight leading-snug font-display break-words [overflow-wrap:anywhere] [word-break:normal]">
                 {caseData.stage0?.clientName} {t("அவர்களின் வழக்கு மேலாண்மை", "Case Management File")}
               </h3>
-              <p className="text-xs text-slate-600 mt-1.5 font-medium flex items-center gap-1">
-                <Landmark className="h-3.5 w-3.5 text-purple-700" />
-                {t("வட்டம் (தாலுகா)", "Taluk")}: {caseData.stage0?.taluk || "N/A"} | {t("எதிர் தரப்பினர்", "Opposite Party")}: {caseData.stage0?.oppositeParty || "N/A"}
+              <p className="text-xs text-slate-600 mt-1.5 font-medium flex flex-wrap items-center gap-1 break-words">
+                <Landmark className="h-3.5 w-3.5 text-purple-700 shrink-0" />
+                <span>{t("வட்டம் (தாலுகா)", "Taluk")}: {caseData.stage0?.taluk || "N/A"} | {t("எதிர் தரப்பினர்", "Opposite Party")}: {caseData.stage0?.oppositeParty || "N/A"}</span>
               </p>
             </div>
             
@@ -292,8 +292,8 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
         </div>
 
         {/* Stage 00 Card: Intake Identifiers */}
-        <div id="stage-00" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 relative">
-          <div className="flex items-center gap-2 pb-3 border-b border-slate-200">
+        <div id="stage-00" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 relative min-w-0">
+          <div className="flex flex-wrap items-center gap-2 pb-3 border-b border-slate-200">
             <span className="w-1.5 h-3 bg-purple-700 rounded mr-1"></span>
             <span className="text-[10px] font-bold text-slate-500 uppercase">{t("நிலை 00", "Stage 00")}</span>
             <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
@@ -301,42 +301,42 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
             </h4>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 min-w-0">
               <span className="text-[9px] font-bold text-slate-500 uppercase block mb-0.5">{t("வாடிக்கையாளர் பெயர்", "Client Name")}</span>
-              <span className="font-bold text-slate-900">{caseData.stage0?.clientName || "N/A"}</span>
+              <span className="font-bold text-slate-900 break-words [overflow-wrap:anywhere] [word-break:normal] block">{caseData.stage0?.clientName || "N/A"}</span>
             </div>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 min-w-0">
               <span className="text-[9px] font-bold text-slate-500 uppercase block mb-0.5">{t("கைபேசி எண்", "Mobile Number")}</span>
-              <span className="font-bold text-slate-900">{caseData.stage0?.mobile || "N/A"}</span>
+              <span className="font-bold text-slate-900 break-words [overflow-wrap:anywhere] block">{caseData.stage0?.mobile || "N/A"}</span>
             </div>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 min-w-0">
               <span className="text-[9px] font-bold text-slate-500 uppercase block mb-0.5">{t("சர்வே எண்", "Survey Number")}</span>
-              <span className="font-bold text-slate-900">{caseData.stage0?.surveyNumber || "N/A"}</span>
+              <span className="font-bold text-slate-900 break-words [overflow-wrap:anywhere] block">{caseData.stage0?.surveyNumber || "N/A"}</span>
             </div>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 min-w-0">
               <span className="text-[9px] font-bold text-slate-500 uppercase block mb-0.5">{t("கிராமம் & வட்டம் (தாலுகா)", "Village & Taluk")}</span>
-              <span className="font-bold text-slate-900">{caseData.stage0?.village}, {caseData.stage0?.taluk}</span>
+              <span className="font-bold text-slate-900 break-words [overflow-wrap:anywhere] [word-break:normal] block">{caseData.stage0?.village}, {caseData.stage0?.taluk}</span>
             </div>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 min-w-0">
               <span className="text-[9px] font-bold text-slate-500 uppercase block mb-0.5">{t("மாவட்டம்", "District")}</span>
-              <span className="font-bold text-slate-900">{caseData.stage0?.district}</span>
+              <span className="font-bold text-slate-900 break-words [overflow-wrap:anywhere] block">{caseData.stage0?.district}</span>
             </div>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 min-w-0">
               <span className="text-[9px] font-bold text-slate-500 uppercase block mb-0.5">{t("எதிர் தரப்பினர்", "Opposite Party")}</span>
-              <span className="font-bold text-rose-700">{caseData.stage0?.oppositeParty || "N/A"}</span>
+              <span className="font-bold text-rose-700 break-words [overflow-wrap:anywhere] [word-break:normal] block">{caseData.stage0?.oppositeParty || "N/A"}</span>
             </div>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 min-w-0">
               <span className="text-[9px] font-bold text-slate-500 uppercase block mb-0.5">{t("வழக்கறிஞர் வழக்கு உள்ளதா?", "Pending Court Case?")}</span>
-              <span className="font-bold text-slate-900">
+              <span className="font-bold text-slate-900 break-words [overflow-wrap:anywhere] block">
                 {caseData.stage0?.existingAdvocate === "Yes" 
                   ? t(`ஆம் (${caseData.stage0?.existingCaseNumber || "நிலுவையில்"})`, `Yes (${caseData.stage0?.existingCaseNumber || "Pending"})`)
                   : t("இல்லை", "No")}
               </span>
             </div>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 min-w-0">
               <span className="text-[9px] font-bold text-slate-500 uppercase block mb-0.5">{t("கால வரம்பு அச்சுறுத்தல்", "Limitation Risk")}</span>
-              <span className={`font-bold ${caseData.stage0?.limitationRisk === "Yes" ? "text-rose-700" : "text-emerald-700"}`}>
+              <span className={`font-bold block break-words ${caseData.stage0?.limitationRisk === "Yes" ? "text-rose-700" : "text-emerald-700"}`}>
                 {caseData.stage0?.limitationRisk === "Yes" 
                   ? t("செயலில் உள்ள அச்சுறுத்தல்", "Active Limitation Threat") 
                   : t("எதுவுமில்லை", "None Detected")}
@@ -346,7 +346,7 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
         </div>
 
         {/* Stage 01 & 02 Card: Category & Root Cause */}
-        <div id="stage-01" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div id="stage-01" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 min-w-0">
           <div id="stage-02" className="flex items-center gap-2 pb-3 border-b border-slate-200">
             <span className="w-1.5 h-3 bg-purple-700 rounded mr-1"></span>
             <span className="text-[10px] font-bold text-slate-500 uppercase">{t("நிலை 01 & 02", "Stage 01 & 02")}</span>
@@ -447,7 +447,7 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
         </div>
 
         {/* Stage 03, 04, 05 Card: Subject/Property, Cause of Action & Rights Matrix */}
-        <div id="stage-03" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div id="stage-03" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 min-w-0">
           <div id="stage-04" className="flex items-center justify-between pb-3 border-b border-slate-200">
             <div className="flex items-center gap-2">
               <span id="stage-05" className="w-1.5 h-3 bg-purple-700 rounded mr-1"></span>
@@ -458,64 +458,64 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 min-w-0">
               <span className="text-[9px] font-bold text-slate-500 uppercase block mb-1">
                 {t("வழக்கின் பொருள் / சொத்து வகை", "Dispute Subject / Property Type")}
               </span>
-              <span className="text-xs font-bold text-slate-900">
+              <span className="text-xs font-bold text-slate-900 block break-words [overflow-wrap:anywhere] [word-break:normal]">
                 {typeof caseData.stage3 === "object" ? caseData.stage3?.subjectType : (caseData.stage3 || t("பூர்வீக சொத்து / சட்டப்பொருள்", "Ancestral Property / Legal Subject"))}
               </span>
               {typeof caseData.stage3 === "object" && caseData.stage3?.partyRelationshipMap && (
-                <span className="block text-[10px] text-purple-800 font-semibold mt-1">
+                <span className="block text-[10px] text-purple-800 font-semibold mt-1 break-words [overflow-wrap:anywhere]">
                   {t("உறவுமுறை", "Party Map")}: {caseData.stage3.partyRelationshipMap}
                 </span>
               )}
             </div>
 
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 min-w-0">
               <span className="text-[9px] font-bold text-slate-500 uppercase block mb-1">
                 {t("வழக்கின் காரணம் (Cause of Action)", "Cause of Action Timeline")}
               </span>
               {typeof caseData.stage4 === "object" && Array.isArray(caseData.stage4?.timelineEvents) ? (
                 <div className="text-left space-y-1">
                   {caseData.stage4.timelineEvents.slice(0, 3).map((evt, idx) => (
-                    <span key={idx} className="block text-[10px] font-semibold text-purple-900">
+                    <span key={idx} className="block text-[10px] font-semibold text-purple-900 break-words [overflow-wrap:anywhere] [word-break:normal]">
                       • {evt}
                     </span>
                   ))}
                 </div>
               ) : (
-                <span className="text-xs font-bold text-purple-900">{String(caseData.stage4 || t("தகராறு நிகழ்வு", "Dispute Event"))}</span>
+                <span className="text-xs font-bold text-purple-900 block break-words [overflow-wrap:anywhere]">{String(caseData.stage4 || t("தகராறு நிகழ்வு", "Dispute Event"))}</span>
               )}
             </div>
 
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 min-w-0">
               <span className="text-[9px] font-bold text-slate-500 uppercase block mb-1">
                 {t("பாதிக்கப்பட்ட உரிமை & கடமை மீறல்", "Rights Violated & Duties Breached")}
               </span>
               {typeof caseData.stage5 === "object" ? (
                 <div className="text-left text-[10px] space-y-1">
                   {Array.isArray(caseData.stage5?.rightsViolated) && caseData.stage5.rightsViolated.length > 0 && (
-                    <span className="block font-bold text-rose-700">
+                    <span className="block font-bold text-rose-700 break-words [overflow-wrap:anywhere]">
                       {t("உரிமை மீறல்", "Violated Rights")}: {caseData.stage5.rightsViolated.join(", ")}
                     </span>
                   )}
                   {Array.isArray(caseData.stage5?.dutiesBreached) && caseData.stage5.dutiesBreached.length > 0 && (
-                    <span className="block font-medium text-slate-700">
+                    <span className="block font-medium text-slate-700 break-words [overflow-wrap:anywhere]">
                       {t("கடமை மீறல்", "Breached Duties")}: {caseData.stage5.dutiesBreached.join(", ")}
                     </span>
                   )}
                 </div>
               ) : (
-                <span className="text-xs font-bold text-emerald-800">{String(caseData.stage5 || t("பாதிக்கப்பட்ட உரிமை", "Protected Rights"))}</span>
+                <span className="text-xs font-bold text-emerald-800 block break-words">{String(caseData.stage5 || t("பாதிக்கப்பட்ட உரிமை", "Protected Rights"))}</span>
               )}
             </div>
           </div>
         </div>
 
         {/* Stage 06 Card: Interactive Evidence Matrix */}
-        <div id="stage-06" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div id="stage-06" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 min-w-0">
           <div className="flex items-center justify-between pb-3 border-b border-slate-200">
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-3 bg-purple-700 rounded mr-1"></span>
@@ -535,7 +535,7 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Available Documents */}
-            <div>
+            <div className="min-w-0">
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2">
                 {t("தளத்தில் உள்ள ஆவணங்கள்", "Available Documents")} ({availableDocs.length})
               </span>
@@ -548,15 +548,15 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
                   {availableDocs.map((doc, idx) => (
                     <label 
                       key={idx} 
-                      className="flex items-start gap-2.5 p-2 bg-emerald-50 border border-emerald-200 rounded-lg cursor-pointer hover:bg-emerald-100 transition text-xs font-medium text-emerald-900"
+                      className="flex items-start gap-2.5 p-2 bg-emerald-50 border border-emerald-200 rounded-lg cursor-pointer hover:bg-emerald-100 transition text-xs font-medium text-emerald-900 min-w-0"
                     >
                       <input 
                         type="checkbox" 
                         checked={true}
                         onChange={() => handleToggleDoc(doc, true)}
-                        className="mt-0.5 h-3.5 w-3.5 text-emerald-600 border-slate-300 rounded-sm cursor-pointer accent-emerald-600"
+                        className="mt-0.5 h-3.5 w-3.5 text-emerald-600 border-slate-300 rounded-sm cursor-pointer accent-emerald-600 shrink-0"
                       />
-                      <span className="truncate">{doc}</span>
+                      <span className="break-words [overflow-wrap:anywhere] [word-break:normal] flex-1 min-w-0">{doc}</span>
                     </label>
                   ))}
                 </div>
@@ -564,28 +564,28 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
             </div>
 
             {/* Missing Documents */}
-            <div>
+            <div className="min-w-0">
               <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block mb-2">
                 {t("இல்லாத ஆவணங்கள் / சேவை வாய்ப்புகள்", "Missing Documents / Service Opportunities")} ({missingDocs.length})
               </span>
               {missingDocs.length === 0 ? (
                 <p className="text-xs text-emerald-800 font-bold italic flex items-center gap-1.5 p-2 bg-emerald-50 border border-emerald-200 rounded-lg">
-                  <CheckCircle className="h-4 w-4" /> {t("அனைத்து முக்கிய ஆதார ஆவணங்களும் உள்ளன!", "All key evidence documents are available!")}
+                  <CheckCircle className="h-4 w-4 shrink-0" /> {t("அனைத்து முக்கிய ஆதார ஆவணங்களும் உள்ளன!", "All key evidence documents are available!")}
                 </p>
               ) : (
                 <div className="space-y-1.5">
                   {missingDocs.map((doc, idx) => (
                     <label 
                       key={idx} 
-                      className="flex items-start gap-2.5 p-2 bg-rose-50 border border-rose-200 rounded-lg cursor-pointer hover:bg-rose-100 transition text-xs font-medium text-slate-700"
+                      className="flex items-start gap-2.5 p-2 bg-rose-50 border border-rose-200 rounded-lg cursor-pointer hover:bg-rose-100 transition text-xs font-medium text-slate-700 min-w-0"
                     >
                       <input 
                         type="checkbox" 
                         checked={false}
                         onChange={() => handleToggleDoc(doc, false)}
-                        className="mt-0.5 h-3.5 w-3.5 text-rose-600 border-slate-300 rounded-sm cursor-pointer"
+                        className="mt-0.5 h-3.5 w-3.5 text-rose-600 border-slate-300 rounded-sm cursor-pointer shrink-0"
                       />
-                      <span className="line-through text-slate-400 truncate">{doc}</span>
+                      <span className="line-through text-slate-400 break-words [overflow-wrap:anywhere] [word-break:normal] flex-1 min-w-0">{doc}</span>
                     </label>
                   ))}
                 </div>
@@ -595,7 +595,7 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
         </div>
 
         {/* Stage 07 Card: Authority Route Steps */}
-        <div id="stage-07" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div id="stage-07" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 min-w-0">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-200">
             <span className="w-1.5 h-3 bg-purple-700 rounded mr-1"></span>
             <span className="text-[10px] font-bold text-slate-500 uppercase">{t("நிலை 07", "Stage 07")}</span>
@@ -611,27 +611,27 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
             )}
           </p>
 
-          <div className="flex flex-wrap items-center gap-3 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 pt-2 w-full min-w-0">
             {authoritySteps.map((step, idx) => (
-              <React.Fragment key={idx}>
-                <div className="flex items-center gap-2.5 bg-slate-50 border border-slate-200 p-3 rounded-xl hover:border-purple-400 transition shrink-0 min-w-[130px] justify-center text-center">
-                  <div>
-                    <span className="text-[8px] text-slate-500 font-extrabold block uppercase tracking-wider">
-                      {t(`படி ${idx + 1}`, `Step ${idx + 1}`)}
-                    </span>
-                    <span className="text-xs font-bold text-slate-900">{step}</span>
-                  </div>
+              <div key={idx} className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-3 rounded-xl hover:border-purple-400 transition min-w-0 max-w-full w-full">
+                <div className="w-6 h-6 rounded-full bg-purple-100 text-purple-900 border border-purple-300 font-extrabold text-[10px] flex items-center justify-center shrink-0">
+                  {idx + 1}
                 </div>
-                {idx < authoritySteps.length - 1 && (
-                  <ArrowRight className="h-4 w-4 text-slate-400 hidden sm:block shrink-0" />
-                )}
-              </React.Fragment>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[8px] text-slate-500 font-extrabold block uppercase tracking-wider">
+                    {t(`படி ${idx + 1}`, `Step ${idx + 1}`)}
+                  </span>
+                  <span className="text-xs font-bold text-slate-900 break-words [overflow-wrap:anywhere] [word-break:normal] block">
+                    {step}
+                  </span>
+                </div>
+              </div>
             ))}
           </div>
         </div>
 
         {/* Stage 08 Card: Remedy Track Selection */}
-        <div id="stage-08" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div id="stage-08" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 min-w-0">
           <div className="flex items-center justify-between pb-3 border-b border-slate-200">
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-3 bg-purple-700 rounded mr-1"></span>
@@ -645,15 +645,15 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
             </span>
           </div>
 
-          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex gap-4 items-start">
+          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row gap-4 items-start min-w-0">
             <div className="p-2 bg-purple-100 rounded-lg border border-purple-200 text-purple-800 shrink-0">
               <FileCheck className="h-5 w-5" />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
                 {t("முதன்மையான மனு படிவம்", "Primary Remedy Form / Petition")}
               </h4>
-              <p className="text-sm font-bold text-slate-900 leading-snug">
+              <p className="text-sm font-bold text-slate-900 leading-snug break-words [overflow-wrap:anywhere] [word-break:normal]">
                 {caseData.stage8?.primaryRemedy || t("வருவாய் விதிகளின் கீழ் பட்டா உட்பிரிவுக்கு எதிரான ஆட்சேபனை மனு.", "Objection representation under Tamil Nadu Revenue Rules against illegal mutation.")}
               </p>
             </div>
@@ -661,12 +661,12 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
         </div>
 
         {/* Stage 09: Threat Risk Gauge */}
-        <div id="stage-09" className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-1">
+        <div id="stage-09" className="grid grid-cols-1 md:grid-cols-3 gap-6 min-w-0">
+          <div className="md:col-span-1 min-w-0">
             <RiskGauge score={caseData.stage9?.score || 45} rating={caseData.stage9?.rating || "Medium"} />
           </div>
           
-          <div className="md:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between text-slate-900">
+          <div className="md:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between text-slate-900 min-w-0">
             <div>
               <span className="text-[9px] font-extrabold text-rose-700 uppercase tracking-wider">
                 {t("அச்சுறுத்தல் கண்டறிதல்", "Risk Factor Evaluation")}
@@ -677,21 +677,21 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
               <ul className="text-xs text-slate-600 space-y-1.5 font-medium">
                 <li className="flex items-start gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-600 mt-1.5 shrink-0" />
-                  <span>
+                  <span className="break-words [overflow-wrap:anywhere]">
                     <strong>{t("கால வரம்புச் சட்டத்தின் தாக்கம்:", "Limitation Period Impact:")}</strong>{" "}
                     {t("தமிழ்நாடு வருவாய் விதிகளின் கீழ் பட்டா மாறுதல் தாமதங்களின் நிலை.", "Status of delay under Limitation Act and TN Revenue rules.")}
                   </span>
                 </li>
                 <li className="flex items-start gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-600 mt-1.5 shrink-0" />
-                  <span>
+                  <span className="break-words [overflow-wrap:anywhere]">
                     <strong>{t("கட்டுமானம் / சொத்து விற்பனை அச்சுறுத்தல்:", "Possession / Alienation Threat:")}</strong>{" "}
                     {t("எதிர்த்தரப்பினர் சொத்தை அனுபவத்தில் வைத்திருந்தால் அச்சுறுத்தல் அதிகமாகும்.", "Threat level increases if opposite party holds adverse possession.")}
                   </span>
                 </li>
                 <li className="flex items-start gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-600 mt-1.5 shrink-0" />
-                  <span>
+                  <span className="break-words [overflow-wrap:anywhere]">
                     <strong>{t("ஆதாரங்களின் பற்றாக்குறை:", "Documentary Evidence Gap:")}</strong>{" "}
                     {t("மூலப்பத்திரம் இல்லாதது அரசு வழிமுறைகளில் தடையை அதிகரிக்கும்.", "Absence of parent title deeds increases procedural risks.")}
                   </span>
@@ -699,31 +699,31 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
               </ul>
             </div>
             
-            <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-              <span>{t("அச்சுறுத்தல் மதிப்பெண் தமிழ்நாடு வருவாய் சட்ட வழிகாட்டுதலின்படி கணக்கிடப்படுகிறது.", "Calculated using Tamil Nadu revenue dispute guidelines & statutory limitation rules.")}</span>
+            <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500 font-medium mt-4">
+              <span className="break-words">{t("அச்சுறுத்தல் மதிப்பெண் தமிழ்நாடு வருவாய் சட்ட வழிகாட்டுதலின்படி கணக்கிடப்படுகிறது.", "Calculated using Tamil Nadu revenue dispute guidelines & statutory limitation rules.")}</span>
             </div>
           </div>
         </div>
 
         {/* Stage 11 & 12 Precedent Intelligence & Strategy Simulator Panel */}
-        <div id="stage-11" className="pt-2">
+        <div id="stage-11" className="pt-2 min-w-0">
           <PrecedentAndStrategyPanel caseData={caseData} />
         </div>
 
         {/* Case Updates & Impact History Panel */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 min-w-0">
           <div className="flex items-center justify-between pb-3 border-b border-slate-200">
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-3 bg-purple-700 rounded mr-1"></span>
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <Clock className="h-4 w-4 text-purple-700" />
+                <Clock className="h-4 w-4 text-purple-700 shrink-0" />
                 {t("வழக்கு அப்டேட்கள் & பதிப்புகள் வரலாறு", "Case Updates & Impact History")}
               </h4>
             </div>
             <button
               type="button"
               onClick={() => setIsUpdateModalOpen(true)}
-              className="px-3.5 py-1.5 bg-purple-900 text-white text-xs font-bold rounded-xl hover:bg-purple-800 transition flex items-center gap-1.5 cursor-pointer shadow-sm"
+              className="px-3.5 py-1.5 bg-purple-900 text-white text-xs font-bold rounded-xl hover:bg-purple-800 transition flex items-center gap-1.5 cursor-pointer shadow-sm shrink-0"
             >
               <PlusCircle className="h-3.5 w-3.5 text-purple-300" />
               <span>{t("➕ வழக்கு அப்டேட்", "➕ Update Case")}</span>
@@ -733,7 +733,7 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
           {Array.isArray(caseData.updates) && caseData.updates.length > 0 ? (
             <div className="space-y-3">
               {caseData.updates.map((evt, idx) => (
-                <div key={evt.id || idx} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+                <div key={evt.id || idx} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1 min-w-0">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-[10px] font-black text-purple-900 uppercase tracking-widest bg-purple-100 border border-purple-200 px-2 py-0.5 rounded">
                       {evt.type}
@@ -742,8 +742,8 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
                       {evt.timestamp ? new Date(evt.timestamp).toLocaleString() : ""}
                     </span>
                   </div>
-                  <h5 className="text-xs font-black text-slate-900 mt-1">{evt.title}</h5>
-                  <p className="text-xs text-slate-700 font-medium leading-relaxed">{evt.description}</p>
+                  <h5 className="text-xs font-black text-slate-900 mt-1 break-words">{evt.title}</h5>
+                  <p className="text-xs text-slate-700 font-medium leading-relaxed break-words [overflow-wrap:anywhere]">{evt.description}</p>
                   {(evt.sourceAuthority || evt.documentRef || evt.dateOfOccurrence) && (
                     <div className="flex flex-wrap gap-3 text-[10px] text-slate-500 font-bold pt-1">
                       {evt.dateOfOccurrence && <span>{t("தேதி", "Date")}: {evt.dateOfOccurrence}</span>}
@@ -767,12 +767,12 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 {caseData.versions.map((ver, idx) => (
-                  <div key={ver.versionNumber || idx} className="p-3 bg-purple-50/60 border border-purple-200 rounded-xl space-y-1">
+                  <div key={ver.versionNumber || idx} className="p-3 bg-purple-50/60 border border-purple-200 rounded-xl space-y-1 min-w-0">
                     <div className="flex items-center justify-between text-[10px] font-black text-purple-900">
                       <span>Version v{ver.versionNumber}</span>
                       <span>{ver.createdAt ? new Date(ver.createdAt).toLocaleDateString() : ""}</span>
                     </div>
-                    <p className="text-[11px] text-purple-950 font-bold">{ver.summaryOfChanges}</p>
+                    <p className="text-[11px] text-purple-950 font-bold break-words">{ver.summaryOfChanges}</p>
                     <div className="text-[10px] text-purple-800 font-semibold flex items-center justify-between pt-1">
                       <span>Risk: {ver.previousRiskScore ?? "-"}% -&gt; {ver.newRiskScore ?? "-"}%</span>
                       <span>Stages: {(ver.changedStages || []).join(", ")}</span>
@@ -798,7 +798,7 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
       </div>
 
       {/* 3. Right Sidebar: Recommended Packages & Billing */}
-      <aside id="stage-10" className="w-full lg:w-72 bg-white border border-slate-200 p-5 rounded-2xl shrink-0 flex flex-col space-y-6 print:hidden no-print shadow-sm">
+      <aside id="stage-10" className="w-full bg-white border border-slate-200 p-5 rounded-2xl flex flex-col space-y-6 print:hidden no-print shadow-sm md:col-start-2 xl:col-start-3 sticky top-20">
         
         <h2 className="text-[10px] font-extrabold text-slate-600 uppercase tracking-widest flex items-center gap-1.5">
           <Sparkles className="h-4 w-4 text-purple-700" />

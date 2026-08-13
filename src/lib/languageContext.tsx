@@ -1,7 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Globe } from "lucide-react";
 
-export type LanguageMode = "bilingual" | "english" | "tamil";
+export type LanguageMode = "ta" | "en" | "dual";
+
+export function normalizeLanguageMode(mode?: string | null): LanguageMode {
+  if (!mode) return "dual";
+  const m = mode.toLowerCase().trim();
+  if (m === "ta" || m === "tamil") return "ta";
+  if (m === "en" || m === "english") return "en";
+  if (m === "dual" || m === "bilingual" || m === "ta_en") return "dual";
+  return "dual";
+}
 
 interface LanguageContextType {
   langMode: LanguageMode;
@@ -17,27 +26,32 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [langMode, setLangModeState] = useState<LanguageMode>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved === "english" || saved === "tamil" || saved === "bilingual") {
-        return saved;
-      }
+      return normalizeLanguageMode(saved);
     } catch (e) {
       console.error("Failed to read language mode from storage", e);
     }
-    return "bilingual";
+    return "dual";
   });
 
   const setLangMode = (mode: LanguageMode) => {
-    setLangModeState(mode);
+    const normalized = normalizeLanguageMode(mode);
+    setLangModeState(normalized);
     try {
-      localStorage.setItem(STORAGE_KEY, mode);
+      localStorage.setItem(STORAGE_KEY, normalized);
     } catch (e) {
       console.error("Failed to save language mode to storage", e);
     }
   };
 
   const t = (tamil: string, english: string, format: "parentheses" | "stacked" | "inline" = "parentheses"): string => {
-    if (langMode === "english") return english;
-    if (langMode === "tamil") return tamil;
+    if (!tamil && !english) return "";
+    if (!tamil) return english;
+    if (!english) return tamil;
+
+    if (langMode === "en") return english;
+    if (langMode === "ta") return tamil;
+    
+    // Dual mode (Tamil first, English second)
     if (format === "stacked") return `${tamil}\n(${english})`;
     if (format === "inline") return `${tamil} / ${english}`;
     return `${tamil} (${english})`;
@@ -63,9 +77,9 @@ export const LanguageSelectorButton: React.FC<{ variant?: "dark" | "light"; comp
   const [isOpen, setIsOpen] = useState(false);
 
   const options: { id: LanguageMode; label: string; badge: string }[] = [
-    { id: "bilingual", label: "தமிழ் + English", badge: "Primary Default" },
-    { id: "english", label: "English Only", badge: "EN" },
-    { id: "tamil", label: "தமிழ் மட்டும்", badge: "TA" }
+    { id: "dual", label: "தமிழ் + English (Dual)", badge: "Primary Default" },
+    { id: "en", label: "English Only", badge: "EN" },
+    { id: "ta", label: "தமிழ் மட்டும்", badge: "TA" }
   ];
 
   const currentOption = options.find((o) => o.id === langMode) || options[0];
@@ -86,7 +100,7 @@ export const LanguageSelectorButton: React.FC<{ variant?: "dark" | "light"; comp
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-extrabold border transition-all cursor-pointer ${bgClasses}`}
-        title="Change Language Mode (மொழி தேர்வு)"
+        title="Change Language Mode / மொழி தேர்வு"
       >
         <Globe className="h-3.5 w-3.5 text-amber-400 animate-pulse" />
         {!compact && <span className="hidden sm:inline text-[10px] text-slate-400 uppercase font-black">🌐</span>}
@@ -97,10 +111,10 @@ export const LanguageSelectorButton: React.FC<{ variant?: "dark" | "light"; comp
         <>
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
           <div
-            className={`absolute right-0 mt-1.5 w-48 rounded-xl border shadow-2xl z-50 p-1.5 space-y-1 ${dropdownBg}`}
+            className={`absolute right-0 mt-1.5 w-52 rounded-xl border shadow-2xl z-50 p-1.5 space-y-1 ${dropdownBg}`}
           >
             <div className="px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-800/40 mb-1">
-              Select Language / மொழி
+              Select Language / மொழி தேர்வு
             </div>
             {options.map((opt) => (
               <button

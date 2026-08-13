@@ -16,7 +16,7 @@ interface DocumentDraftPanelProps {
 }
 
 export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPanelProps) {
-  const { t } = useLanguage();
+  const { langMode, t } = useLanguage();
   const [draftTitle, setDraftTitle] = useState(() => caseData.customDocumentDraft?.documentTitle || "சட்ட அறிவிப்பு / மனு");
   const [draftContent, setDraftContent] = useState(() => caseData.customDocumentDraft?.documentContent || "");
   const [originalTitle, setOriginalTitle] = useState(() => caseData.customDocumentDraft?.documentTitle || "சட்ட அறிவிப்பு / மனு");
@@ -100,7 +100,8 @@ export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPan
         body: JSON.stringify({
           caseData,
           documentTitle: draftTitle,
-          instructions
+          instructions,
+          languageMode: langMode
         })
       });
 

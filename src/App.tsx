@@ -41,7 +41,7 @@ import {
 } from "./lib/supabase";
 
 export default function App() {
-  const { t } = useLanguage();
+  const { langMode, setLangMode, t } = useLanguage();
   const { isOffline, hasUpdate, updateApp } = usePWA();
   const [cases, setCases] = useState<PropertyCase[]>([]);
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
@@ -283,7 +283,7 @@ export default function App() {
           "Content-Type": "application/json",
           ...(authToken ? { "Authorization": `Bearer ${authToken}` } : {})
         },
-        body: JSON.stringify({ intake, rawDescription })
+        body: JSON.stringify({ intake, rawDescription, languageMode: langMode })
       });
 
       const responseText = await response.text();

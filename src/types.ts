@@ -1,4 +1,5 @@
 import { WorkspaceId, SubWorkspaceId, ModuleId, AIEngineId } from "./data/workspaceRegistry";
+import { LanguageMode } from "./lib/languageContext";
 
 export interface IntakeData {
   workspace?: WorkspaceId; // "Citizen360" | "Professional360" | "Enterprise360" | "Government360" | "Industry360"
@@ -93,23 +94,30 @@ export interface CaseFactComparison {
 }
 
 export interface CaseReferenceItem {
-  id: string;
-  caseName: string;
-  citationNumber: string;
+  id?: string;
+  caseId?: string;
+  caseName?: string;
+  title?: string;
+  citationNumber?: string;
+  citation?: string;
   court: string;
   judge?: string;
-  year: string;
-  state: string;
+  year: string | number;
+  state?: string;
   bench?: string;
-  caseType: string;
+  caseType?: string;
   similarityScore: number; // 0-100%
-  factsComparison: CaseFactComparison[];
-  issuesCompared: string[]; // e.g. ["Ownership", "Mutation", "Forgery", "Possession", "Survey", "Registration", "Inheritance", "Limitation"]
-  legalPrinciples: string[]; // Acts, Sections, Rules, G.O.s, Circulars
-  courtReasoningSummary: string;
-  finalOutcome: string; // e.g. "Petition Allowed", "Mutation Restored", "Patta Cancelled", "FIR Quashed"
-  whyItMatters: string;
-  authoritiesCited: string[];
+  factsComparison?: CaseFactComparison[];
+  issuesCompared?: string[]; // e.g. ["Ownership", "Mutation", "Forgery", "Possession", "Survey", "Registration", "Inheritance", "Limitation"]
+  legalPrinciples?: string[]; // Acts, Sections, Rules, G.O.s, Circulars
+  courtReasoningSummary?: string;
+  finalOutcome?: string; // e.g. "Petition Allowed", "Mutation Restored", "Patta Cancelled", "FIR Quashed"
+  whyItMatters?: string;
+  authoritiesCited?: string[];
+  disputeIssueCategory?: string;
+  keyLegalHoldings?: string[];
+  factualSimilarity?: string;
+  strategicValue?: string;
 }
 
 export interface GovernmentOrderItem {
@@ -180,6 +188,7 @@ export interface Stage12StrategySimulator {
     routeType: "Civil" | "Criminal" | "Writ" | "Revenue Appeal" | "Registration Appeal" | "Consumer/Tribunal" | string;
     justification: string;
     timeToResolutionEst: string;
+    successProbabilityPercentage?: number;
   };
   mostPersuasivePrecedents: string[];
   evidenceGapsToFill: EvidenceGapItem[];
@@ -270,6 +279,7 @@ export interface PropertyCase {
   immediateAction: ImmediateAction;
   servicePackage: ServicePackage;
   customDocumentDraft: CustomDocumentDraft;
+  languageMode?: LanguageMode;
   history?: CaseHistoryEntry[];
 }
 
@@ -303,6 +313,7 @@ export interface UserProfile {
   hasProfile?: boolean;
   emailConfirmed?: boolean;
   phone?: string;
+  languageMode?: LanguageMode;
 }
 
 export interface AdminAuditLog {

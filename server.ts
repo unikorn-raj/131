@@ -1131,6 +1131,103 @@ app.post("/api/reanalyze", async (req: express.Request, res: express.Response): 
       documentRef: sanitizePromptInput(String(newEvent.documentRef || "").slice(0, 100)),
     };
 
+    const startTime = Date.now();
+
+    // Construct a compact, lightweight context payload to avoid sending large historical objects/documents/versions to AI
+    const compactContext = {
+      intake: {
+        workspace: existingCase.intake?.workspace,
+        subWorkspace: existingCase.intake?.subWorkspace,
+        clientName: existingCase.intake?.clientName,
+        district: existingCase.intake?.district,
+        state: existingCase.intake?.state,
+        surveyNumber: existingCase.intake?.surveyNumber,
+        village: existingCase.intake?.village,
+      },
+      stage0: existingCase.stage0 ? {
+        propertyIdentified: existingCase.stage0.propertyIdentified,
+        disputeSummary: existingCase.stage0.disputeSummary,
+      } : null,
+      stage1: existingCase.stage1 ? {
+        category: existingCase.stage1.category,
+        subCategory: existingCase.stage1.subCategory,
+        classificationSummary: existingCase.stage1.classificationSummary,
+      } : null,
+      stage2: existingCase.stage2 ? {
+        realIssue: existingCase.stage2.realIssue,
+        underlyingDisputeType: existingCase.stage2.underlyingDisputeType,
+      } : null,
+      stage3: existingCase.stage3 ? {
+        primarySubject: existingCase.stage3.primarySubject,
+        partyRelation: existingCase.stage3.partyRelation,
+      } : null,
+      stage4: existingCase.stage4 ? {
+        chronology: Array.isArray(existingCase.stage4.chronology)
+          ? existingCase.stage4.chronology.slice(0, 10).map((c: any) => ({
+              date: c.date,
+              event: c.event,
+              relevance: c.relevance,
+            }))
+          : [],
+      } : null,
+      stage5: existingCase.stage5 ? {
+        claimedRights: existingCase.stage5.claimedRights,
+        liabilities: existingCase.stage5.liabilities,
+      } : null,
+      stage6: existingCase.stage6 ? {
+        evidenceStrength: existingCase.stage6.evidenceStrength,
+        availableSummary: Array.isArray(existingCase.stage6.available)
+          ? existingCase.stage6.available.map((a: any) => typeof a === "string" ? a : a.title || a.name || String(a))
+          : [],
+        missingSummary: Array.isArray(existingCase.stage6.missing)
+          ? existingCase.stage6.missing.map((m: any) => typeof m === "string" ? m : m.title || m.name || String(m))
+          : [],
+      } : null,
+      stage7: existingCase.stage7 ? {
+        recommendedRoute: existingCase.stage7.recommendedRoute,
+        legalFramework: existingCase.stage7.legalFramework,
+      } : null,
+      stage8: existingCase.stage8 ? {
+        primaryRemedy: existingCase.stage8.primaryRemedy,
+      } : null,
+      stage9: existingCase.stage9 ? {
+        score: existingCase.stage9.score,
+        rating: existingCase.stage9.rating,
+        urgencyLevel: existingCase.stage9.urgencyLevel,
+        factors: Array.isArray(existingCase.stage9.factors) ? existingCase.stage9.factors : [],
+      } : null,
+      stage11: existingCase.stage11 ? {
+        similarCasesSummary: Array.isArray(existingCase.stage11.similarCases)
+          ? existingCase.stage11.similarCases.slice(0, 5).map((c: any) => ({
+              title: c.title || c.caseName || "Reference Case",
+              citation: c.citation || c.citationNumber || "Citation N/A",
+              court: c.court || "Court N/A",
+              year: c.year || "Year N/A",
+              similarityScore: c.similarityScore || 80,
+              relevanceSummary: c.strategicValue || c.whyItMatters || (Array.isArray(c.keyLegalHoldings) ? c.keyLegalHoldings[0] : "") || "Relevant precedent",
+            }))
+          : [],
+      } : null,
+      stage12: existingCase.stage12 ? {
+        strongestLegalRoute: typeof existingCase.stage12.strongestLegalRoute === "object"
+          ? existingCase.stage12.strongestLegalRoute?.routeName
+          : existingCase.stage12.strongestLegalRoute,
+        priorityNextActions: Array.isArray(existingCase.stage12.priorityNextActions)
+          ? existingCase.stage12.priorityNextActions.slice(0, 5).map((p: any) => ({
+              stepNumber: p.stepNumber,
+              action: p.action,
+              targetAuthority: p.targetAuthority,
+            }))
+          : [],
+      } : null,
+    };
+
+    const compactContextJson = JSON.stringify(compactContext);
+    const payloadSizeBytes = Buffer.byteLength(compactContextJson, "utf8");
+    const payloadSizeKb = (payloadSizeBytes / 1024).toFixed(2);
+
+    console.log(`[/api/reanalyze] Compact re-analysis context payload size: ${payloadSizeKb} KB (${payloadSizeBytes} bytes)`);
+
     const ai = getGeminiClient();
 
     const prompt = `
@@ -1138,13 +1235,8 @@ You are the Master Legal AI Engine for the UNIKORN360 / NILAM360 PROPERTY & DISP
 
 An advocate/client is updating an existing property case with a NEW FACT / EVENT / DOCUMENT / COURT ORDER.
 
-### EXISTING PROPERTY CASE CONTEXT:
-- Title / Survey: ${existingCase.intake?.surveyNumber || "Property Case"}
-- Workspace / SubWorkspace: ${existingCase.intake?.workspace || "Citizen360"} / ${existingCase.intake?.subWorkspace || "Property360"}
-- Client Name: ${existingCase.intake?.clientName || "Client"}
-- Current Risk Score: ${existingCase.stage9?.score ?? 50}%
-- Current Legal Route: ${typeof existingCase.stage12 === "object" ? (existingCase.stage12?.strongestLegalRoute?.routeName || existingCase.stage12?.strongestLegalRoute) : "Standard Legal Route"}
-- Core Legal Issue: ${existingCase.stage2?.realIssue || "Property dispute"}
+### COMPACT EXISTING PROPERTY CASE CONTEXT:
+${compactContextJson}
 
 ### NEW CASE UPDATE EVENT:
 - Type: ${safeNewEvent.type}
@@ -1234,20 +1326,33 @@ CRITICAL LANGUAGE REQUIREMENT: All text in impactSummary and changes must strict
       }
     };
 
-    const response = await generateContentWithRetry(ai, {
-      model: "gemini-3.6-flash",
-      contents: prompt,
-      config: {
-        temperature: 0.2,
-        responseMimeType: "application/json",
-        responseSchema: reanalyzeResponseSchema
-      },
-    }, 3, 50000);
+    const geminiStart = Date.now();
+    console.log(`[/api/reanalyze] Initiating Gemini generation (model: gemini-3.6-flash, languageMode: ${languageMode})...`);
 
+    const response = await generateContentWithRetry(
+      ai,
+      {
+        model: "gemini-3.6-flash",
+        contents: prompt,
+        config: {
+          temperature: 0.2,
+          responseMimeType: "application/json",
+          responseSchema: reanalyzeResponseSchema,
+        },
+      },
+      1, // Single generation attempt (0 retries) to prevent stacking execution time
+      35000 // 35 second strict execution deadline
+    );
+
+    const geminiDuration = Date.now() - geminiStart;
+
+    const parseStart = Date.now();
     const text = response.text || "";
     const parsed = cleanAndParseJson(text);
+    const parseDuration = Date.now() - parseStart;
 
     // Validate returned AI structure strictly before merging
+    const validationStart = Date.now();
     const isValidStructure =
       parsed &&
       typeof parsed === "object" &&
@@ -1266,7 +1371,10 @@ CRITICAL LANGUAGE REQUIREMENT: All text in impactSummary and changes must strict
       parsed.changes &&
       typeof parsed.changes === "object";
 
+    const validationDuration = Date.now() - validationStart;
+
     if (!isValidStructure) {
+      console.warn(`[/api/reanalyze] AI response failed structure validation after ${validationDuration}ms.`);
       return res.status(422).json({
         error: "Invalid or malformed AI impact re-analysis response structure."
       });
@@ -1315,6 +1423,11 @@ CRITICAL LANGUAGE REQUIREMENT: All text in impactSummary and changes must strict
       newEvidenceGaps: parsed.impactSummary.newEvidenceGaps,
       nextActions: parsed.impactSummary.nextActions,
     };
+
+    const totalDuration = Date.now() - startTime;
+    console.log(
+      `[/api/reanalyze] Completed successfully in ${totalDuration}ms (Payload: ${payloadSizeKb} KB, Gemini: ${geminiDuration}ms, Parse: ${parseDuration}ms, Validation: ${validationDuration}ms)`
+    );
 
     return res.json({
       mergedCase,

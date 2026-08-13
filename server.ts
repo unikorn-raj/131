@@ -979,37 +979,51 @@ ${draftLanguageInstruction}
 // Case Language Translation & Adaptation Endpoint
 app.post("/api/translate-case", async (req: express.Request, res: express.Response): Promise<any> => {
   try {
-    const { caseData, targetLanguageMode } = req.body;
+    const { caseData, targetLanguageMode, langMode } = req.body;
     if (!caseData) {
       return res.status(400).json({ error: "Case data object is required for language translation." });
     }
 
     const ai = getGeminiClient();
-    const rawMode = targetLanguageMode || "dual";
+    const rawMode = targetLanguageMode || langMode || "dual";
     const mode = (rawMode === "ta" || rawMode === "tamil") ? "ta" : (rawMode === "en" || rawMode === "english") ? "en" : "dual";
 
+    const languageMandate = mode === "ta"
+      ? "Translate all user-facing descriptions, legal positions, issues, rights, remedies, factors, court reasoning, strategy recommendations, client replies, timeline events, evidence notes, custom document content, similar cases summaries, G.O. and circular summaries strictly into professional Tamil (தமிழ்)."
+      : mode === "en"
+      ? "Translate all user-facing descriptions, legal positions, issues, rights, remedies, factors, court reasoning, strategy recommendations, client replies, timeline events, evidence notes, custom document content, similar cases summaries, G.O. and circular summaries strictly into professional English. Do NOT leave Tamil prose in any field unless it is a proper name, citation, or statutory title."
+      : "Provide both Tamil and English for every text field, with Tamil first followed by English in parentheses or on a new line (e.g., 'வழக்கின் மூலப் பிரச்சனை (Root Issue in English)').";
+
     const prompt = `
-You are an expert Tamil-English legal translator specializing in Indian & Tamil Nadu property laws.
-Translate and adapt the user-facing text fields of the following PropertyCase analysis into target language mode: '${mode}' (ta = Tamil, en = English, dual = Tamil + English bilingual).
+You are an expert legal translator specializing in Indian and Tamil Nadu property laws.
+Translate and adapt ALL natural language text fields across the ENTIRE PropertyCase structure into target language mode: '${mode}' (ta = Tamil, en = English, dual = Tamil + English bilingual).
 
-Language Rules:
-- 'ta': Translate all user-facing descriptions, issues, rights, remedies, factors, court reasoning, strategy recommendations, client replies, and custom document content into professional Tamil (தமிழ்).
-- 'en': Translate all user-facing descriptions, issues, rights, remedies, factors, court reasoning, strategy recommendations, client replies, and custom document content into professional English.
-- 'dual': Provide both Tamil and English for every text field, with Tamil first followed by English in parentheses or on a new line (e.g., 'வழக்கின் மூலப் பிரச்சனை (Root Issue in English)').
+LANGUAGE INSTRUCTION FOR MODE '${mode}':
+${languageMandate}
 
-CRITICAL MANDATE:
-- Maintain all structural JSON keys, IDs, dates, numbers, percentages, ratings, and boolean flags unchanged.
-- Preserve case citation numbers, statutes, and G.O. numbers intact.
-- Return the full updated PropertyCase JSON object.
+CRITICAL MANDATES:
+1. Translate EVERY stage completely: stage0, stage1, stage2, stage3, stage4, stage5, stage6, stage7, stage8, stage9, stage10, stage11, stage12.
+2. Translate ALL nested arrays and objects:
+   - stage4 (timelineEvents, causeOfActionDetail)
+   - stage5 (rightsViolated, liabilities, remedies)
+   - stage6 (available, missing, requiredEvidence)
+   - stage11 (similarCases, supremeCourtCases, highCourtCases, governmentOrders, circulars, authoritiesSummary)
+   - stage12 (strategyOptions, counterarguments, risks, recommendations)
+   - clientFacingReply (problemIdentified, legalPosition, immediateNextStep, expectedAuthority, estimatedTimeline)
+   - customDocumentDraft (documentTitle, documentContent)
+   - documentsRequired, immediateAction, servicePackage
+3. DO NOT translate structural JSON keys, IDs, dates, numbers, percentages, ratings, boolean flags, URLs, case citation numbers (e.g., '2023 (4) CTC 412'), survey numbers, section numbers, or G.O. numbers.
+4. Return the complete updated PropertyCase JSON object without omitting any field or array item.
 
-Input Case Data:
-${JSON.stringify(caseData).slice(0, 25000)}
+Full Input Case JSON:
+${JSON.stringify(caseData)}
 `;
 
     const systemInstruction = `
-You are a legal translation AI engine for Unikorn360.
-Adapt the text fields of the provided PropertyCase object to target language mode '${mode}' while preserving the exact JSON schema and non-translatable metadata (IDs, scores, dates).
-Return valid JSON matching the input PropertyCase structure.
+You are the master legal translation AI engine for Unikorn360.
+Translate the natural language content of the provided PropertyCase object to target language mode '${mode}'.
+Preserve exact JSON structure, property names, IDs, dates, case numbers, citations, and numeric values.
+Respond strictly in valid JSON matching the PropertyCase object structure.
 `;
 
     const response = await generateContentWithRetry(ai, {
@@ -1026,7 +1040,16 @@ Return valid JSON matching the input PropertyCase structure.
     }
 
     const translatedCase = cleanAndParseJson(response.text);
+    if (!translatedCase || typeof translatedCase !== "object") {
+      return res.status(500).json({ error: "Failed to parse translated case JSON." });
+    }
+
+    // Preserve metadata and non-translatable fields from original case
+    translatedCase.id = caseData.id || translatedCase.id;
+    translatedCase.createdAt = caseData.createdAt || translatedCase.createdAt;
+    translatedCase.rawDescription = caseData.rawDescription || translatedCase.rawDescription;
     translatedCase.languageMode = mode;
+
     return res.json(translatedCase);
   } catch (error: any) {
     console.error("Translation Error:", error);

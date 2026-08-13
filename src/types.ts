@@ -280,6 +280,11 @@ export interface PropertyCase {
   servicePackage: ServicePackage;
   customDocumentDraft: CustomDocumentDraft;
   languageMode?: LanguageMode;
+  translatedVariants?: {
+    ta?: PropertyCase;
+    en?: PropertyCase;
+    dual?: PropertyCase;
+  };
   history?: CaseHistoryEntry[];
 }
 

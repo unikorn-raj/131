@@ -14,7 +14,7 @@ interface PrecedentAndStrategyPanelProps {
 }
 
 export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPanelProps) {
-  const { t } = useLanguage();
+  const { langMode, t } = useLanguage();
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"stage11" | "stage12">("stage11");
   const [issueFilter, setIssueFilter] = useState<string>("All");
@@ -40,7 +40,7 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
     ? rawCircs
     : [
         {
-          circularNumber: "சுற்றறிக்கை எண். 18/2023",
+          circularNumber: langMode === "en" ? "Circular No. 18/2023" : langMode === "dual" ? "சுற்றறிக்கை / Circular No. 18/2023" : "சுற்றறிக்கை எண். 18/2023",
           date: "28-09-2023",
           department: t("நில அளவை மற்றும் பதிவேடுகள் இயக்ககம்", "Survey & Settlement Directorate"),
           subject: t("கூட்டுப் பட்டா உட்பிரிவு மற்றும் சர்வே எல்லைக் கோடுகள் மாற்றம் தொடர்பான வரைமுறைகள்", "Guidelines on joint patta subdivision and boundary alterations"),
@@ -51,38 +51,84 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
   // Fallback defaults if analyzing older case without stage11/12
   const rawSimilarCases = stage11?.similarCases && stage11.similarCases.length > 0 ? stage11.similarCases : null;
 
-  const similarCases: CaseReferenceItem[] = rawSimilarCases || [
+  const fallbackSimilarCases: CaseReferenceItem[] = [
     {
       caseId: "HC-TN-2023-881",
       citation: "2023 (4) CTC 412 (Madras HC)",
       court: "Madras High Court",
-      title: "ராமசாமி செட்டியார் vs மாவட்ட வருவாய் அலுவலர் (DRO), மதுரை",
+      title: langMode === "en"
+        ? "Ramasamy Chettiar vs Revenue Divisional Officer (DRO), Madurai"
+        : langMode === "dual"
+        ? "ராமசாமி செட்டியார் vs DRO மதுரை (Ramasamy Chettiar vs DRO Madurai)"
+        : "ராமசாமி செட்டியார் vs மாவட்ட வருவாய் அலுவலர் (DRO), மதுரை",
       year: 2023,
       similarityScore: 94,
-      disputeIssueCategory: "வருவாய் நீதிமன்ற விசாரணை இன்றி தன்னிச்சையாகப் பட்டா மாற்றம்",
-      keyLegalHoldings: [
+      disputeIssueCategory: langMode === "en"
+        ? "Arbitrary Patta Alteration Without Revenue Enquiry"
+        : langMode === "dual"
+        ? "பட்டா மாற்றம் (Arbitrary Patta Alteration Without Enquiry)"
+        : "வருவாய் நீதிமன்ற விசாரணை இன்றி தன்னிச்சையாகப் பட்டா மாற்றம்",
+      keyLegalHoldings: langMode === "en" ? [
+        "Tahsildar cannot cancel patta without issuing prior written notice to the patta holder.",
+        "Order passed by Revenue Divisional Officer (RDO) without enquiry is legally void."
+      ] : langMode === "dual" ? [
+        "பட்டாதாரருக்கு அறிவிப்பின்றி பட்டா ரத்து செய்ய இயலாது (Tahsildar cannot cancel patta without notice).",
+        "விசாரணையின்றி RDO பிறப்பித்த உத்தரவு செல்லாது (RDO order without enquiry is legally void)."
+      ] : [
         "பட்டாதாரருக்கு எழுத்துப்பூர்வ அறிவிப்பு வழங்காமல் தாலுகா அலுவலர் பட்டாவை ரத்து செய்ய முடியாது.",
         "வருவாய் கோட்டாட்சியர் (RDO) விசாரணை செய்யாமல் பிறப்பித்த உத்தரவு செல்லாது."
       ],
-      factualSimilarity: "மனுதாரர் 30 ஆண்டுகளாக அனுபவத்தில் இருந்த நிலையில், எதிர்மனுதாரர் மனுவின் பேரில் விசாரணை இன்றி பட்டா மாற்றப்பட்டது.",
-      strategicValue: "இயற்கை நீதி மீறப்பட்டதைச் சுட்டிக்காட்டி உயர் நீதிமன்றப் பேராணை (Writ) தாக்கல் செய்யப் பயன்படுத்தலாம்."
+      factualSimilarity: langMode === "en"
+        ? "Petitioner was in peaceful possession for 30 years when patta was altered on respondent's petition without notice."
+        : langMode === "dual"
+        ? "30 ஆண்டு அனுபவத்தில் விசாரணை இன்றி பட்டா மாற்றம் செய்யப்பட்டது (Petitioner in possession for 30 years; patta altered without notice)."
+        : "மனுதாரர் 30 ஆண்டுகளாக அனுபவத்தில் இருந்த நிலையில், எதிர்மனுதாரர் மனுவின் பேரில் விசாரணை இன்றி பட்டா மாற்றப்பட்டது.",
+      strategicValue: langMode === "en"
+        ? "Can be cited in Writ Petition pointing out breach of natural justice."
+        : langMode === "dual"
+        ? "இயற்கை நீதி மீறல் சுட்டிக்காட்டி Writ மனு தாக்கல் செய்யலாம் (Can be cited in Writ Petition for natural justice breach)."
+        : "இயற்கை நீதி மீறப்பட்டதைச் சுட்டிக்காட்டி உயர் நீதிமன்றப் பேராணை (Writ) தாக்கல் செய்யப் பயன்படுத்தலாம்."
     },
     {
       caseId: "HC-TN-2022-104",
       citation: "2022 (2) MWN (Civil) 605",
       court: "Madras High Court (Madurai Bench)",
-      title: "கருப்பையா vs சுப்பிரமணியன் மற்றும் பலர்",
+      title: langMode === "en"
+        ? "Karuppiah vs Subramanian and Others"
+        : langMode === "dual"
+        ? "கருப்பையா vs சுப்பிரமணியன் (Karuppiah vs Subramanian & Ors)"
+        : "கருப்பையா vs சுப்பிரமணியன் மற்றும் பலர்",
       year: 2022,
       similarityScore: 89,
-      disputeIssueCategory: "பிரிவு 77A போலி பத்திர ரத்து மற்றும் மாவட்ட பதிவாளர் அதிகாரம்",
-      keyLegalHoldings: [
+      disputeIssueCategory: langMode === "en"
+        ? "Section 77A Fraudulent Document Cancellation & Registrar Powers"
+        : langMode === "dual"
+        ? "பிரிவு 77A போலி பத்திரம் ரத்து (Section 77A Fraudulent Document Cancellation)"
+        : "பிரிவு 77A போலி பத்திர ரத்து மற்றும் மாவட்ட பதிவாளர் அதிகாரம்",
+      keyLegalHoldings: langMode === "en" ? [
+        "District Registrar has full statutory power under Registration Act Section 77A to cancel fraudulent deeds.",
+        "Pending civil suit is not a bar for District Registrar to cancel fraudulent registration."
+      ] : langMode === "dual" ? [
+        "மாவட்ட பதிவாளருக்கு போலி பதிவு ரத்து செய்ய அதிகாரம் உண்டு (District Registrar can cancel fraudulent registration under Sec 77A).",
+        "சிவில் வழக்கு நிலுவை போலி பதிவு ரத்திற்குத் தடையல்ல (Pending civil suit does not bar Sec 77A cancellation)."
+      ] : [
         "போலி பத்திரம் மூலம் பதிவு செய்யப்பட்ட ஆவணங்களை மாவட்ட பதிவாளர் விசாரணை நடத்தி ரத்து செய்யலாம்.",
         "உரிமையியல் நீதிமன்ற வழக்கு நிலுவையில் இருந்தாலும் போலி பதிவு ரத்து செய்யத் தடையல்ல."
       ],
-      factualSimilarity: "போலி ஆவணங்கள் மூலம் சார்பதிவாளர் அலுவலகத்தில் நிறைவேற்றப்பட்ட விற்பனைப் பத்திரம்.",
-      strategicValue: "மாவட்ட பதிவாளரிடம் பதிவுச் சட்டப் பிரிவு 77A-ன்கீழ் போலி பத்திர ரத்து மனு தாக்கல் செய்ய உகந்தது."
+      factualSimilarity: langMode === "en"
+        ? "Sale deed executed at Sub-Registrar Office using forged parent documents."
+        : langMode === "dual"
+        ? "போலி ஆவணம் மூலம் சார்பதிவாளர் அலுவலகத்தில் விற்பனை பத்திரம் (Sale deed executed via forged parent documents)."
+        : "போலி ஆவணங்கள் மூலம் சார்பதிவாளர் அலுவலகத்தில் நிறைவேற்றப்பட்ட விற்பனைப் பத்திரம்.",
+      strategicValue: langMode === "en"
+        ? "Ideal for filing petition under Registration Act Sec 77A before District Registrar."
+        : langMode === "dual"
+        ? "மாவட்ட பதிவாளரிடம் பிரிவு 77A மனு தாக்கல் செய்ய உகந்தது (Ideal for filing Sec 77A petition before District Registrar)."
+        : "மாவட்ட பதிவாளரிடம் பதிவுச் சட்டப் பிரிவு 77A-ன்கீழ் போலி பத்திர ரத்து மனு தாக்கல் செய்ய உகந்தது."
     }
   ];
+
+  const similarCases: CaseReferenceItem[] = rawSimilarCases || fallbackSimilarCases;
 
   const filteredCases = issueFilter === "All" 
     ? similarCases 

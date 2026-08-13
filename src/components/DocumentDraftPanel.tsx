@@ -29,6 +29,17 @@ export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPan
   const [sealInfo, setSealInfo] = useState<DocumentSealInfo | null>(null);
 
   useEffect(() => {
+    if (caseData.customDocumentDraft?.documentTitle) {
+      setDraftTitle(caseData.customDocumentDraft.documentTitle);
+      setOriginalTitle(caseData.customDocumentDraft.documentTitle);
+    }
+    if (caseData.customDocumentDraft?.documentContent) {
+      setDraftContent(caseData.customDocumentDraft.documentContent);
+      setOriginalContent(caseData.customDocumentDraft.documentContent);
+    }
+  }, [caseData.id, caseData.customDocumentDraft?.documentTitle, caseData.customDocumentDraft?.documentContent]);
+
+  useEffect(() => {
     if (caseData.id && draftContent) {
       generateDocumentSeal(caseData.id, draftContent).then(setSealInfo);
     }

@@ -17,7 +17,7 @@ import { LandingPage } from "./components/LandingPage";
 import { UnikornLogo } from "./components/UnikornLogo";
 import { PWAInstallButton } from "./components/PWAInstallButton";
 import { usePWA } from "./lib/pwa";
-import { useLanguage, LanguageSelectorButton } from "./lib/languageContext";
+import { useLanguage, LanguageSelectorButton, LanguageMode } from "./lib/languageContext";
 import { downloadDocumentAsPDF, downloadCompleteCaseReportPDF } from "./lib/pdfExport";
 
 import { 
@@ -48,7 +48,10 @@ export default function App() {
 
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [activeTab, setActiveTab] = useState<"analysis" | "brief" | "draft">("analysis");
+  const [isTranslatingCase, setIsTranslatingCase] = useState(false);
+  const [translationProgressLang, setTranslationProgressLang] = useState<LanguageMode | null>(null);
+  const pendingTranslationsRef = React.useRef<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState<"analysis" | "brief" | "draft" | "precedents">("analysis");
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [errorText, setErrorText] = useState<string | null>(null);
@@ -510,7 +513,82 @@ ${selectedCase.stage6?.available?.map(d => `✓ ${d}`).join("\n") || "N/A"}
     }
   };
 
-  const selectedCase = cases.find(c => c.id === selectedCaseId);
+  const ensureCaseLanguage = React.useCallback(async (canonicalCase: PropertyCase, targetLang: LanguageMode) => {
+    if (!canonicalCase) return;
+    if (canonicalCase.languageMode === targetLang || canonicalCase.translatedVariants?.[targetLang]) {
+      return;
+    }
+
+    const reqKey = `${canonicalCase.id}_${targetLang}`;
+    if (pendingTranslationsRef.current.has(reqKey)) return;
+    pendingTranslationsRef.current.add(reqKey);
+
+    setIsTranslatingCase(true);
+    setTranslationProgressLang(targetLang);
+
+    try {
+      let authToken = "";
+      if (user) {
+        try {
+          const session = await getCurrentSession();
+          authToken = session?.access_token || "";
+        } catch (e) {
+          console.warn("Failed to obtain Auth Token for translation:", e);
+        }
+      }
+
+      const response = await fetch("/api/translate-case", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(authToken ? { "Authorization": `Bearer ${authToken}` } : {})
+        },
+        body: JSON.stringify({
+          caseData: canonicalCase,
+          targetLanguageMode: targetLang
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Translation endpoint error");
+      }
+
+      const translatedVariant: PropertyCase = await response.json();
+
+      const updatedCanonical: PropertyCase = {
+        ...canonicalCase,
+        translatedVariants: {
+          ...(canonicalCase.translatedVariants || {}),
+          [targetLang]: translatedVariant
+        }
+      };
+
+      handleUpdateCase(updatedCanonical, `Case content translated to ${targetLang.toUpperCase()} language mode.`);
+    } catch (err) {
+      console.error("Auto translation error:", err);
+    } finally {
+      pendingTranslationsRef.current.delete(reqKey);
+      setIsTranslatingCase(false);
+      setTranslationProgressLang(null);
+    }
+  }, [user, handleUpdateCase]);
+
+  const rawSelectedCase = cases.find(c => c.id === selectedCaseId);
+
+  useEffect(() => {
+    if (rawSelectedCase) {
+      ensureCaseLanguage(rawSelectedCase, langMode);
+    }
+  }, [selectedCaseId, langMode, rawSelectedCase, ensureCaseLanguage]);
+
+  const selectedCase = React.useMemo(() => {
+    if (!rawSelectedCase) return undefined;
+    if (rawSelectedCase.languageMode === langMode) return rawSelectedCase;
+    if (rawSelectedCase.translatedVariants?.[langMode]) {
+      return rawSelectedCase.translatedVariants[langMode];
+    }
+    return rawSelectedCase;
+  }, [rawSelectedCase, langMode]);
 
   // Filter cases based on search and category filters
   const filteredCases = cases.filter(c => {
@@ -973,6 +1051,23 @@ ${selectedCase.stage6?.available?.map(d => `✓ ${d}`).join("\n") || "N/A"}
           ) : (
             /* Active Selected Case View */
             <div className="lg:col-span-12 space-y-6">
+              
+              {isTranslatingCase && (
+                <div className="p-3 bg-indigo-900 text-indigo-100 rounded-xl flex items-center justify-between shadow-md border border-indigo-700 animate-pulse no-print">
+                  <div className="flex items-center gap-3">
+                    <RefreshCw className="h-4 w-4 animate-spin text-amber-400" />
+                    <span className="text-xs font-bold font-mono tracking-wide">
+                      {t(
+                        `வழக்கு ஆய்வை ${translationProgressLang === 'ta' ? 'தமிழ்' : translationProgressLang === 'en' ? 'ஆங்கிலம்' : 'இருமொழி'} மொழியில் தயாரித்துக் கொண்டிருக்கிறது...`,
+                        `Preparing ${translationProgressLang === 'ta' ? 'Tamil' : translationProgressLang === 'en' ? 'English' : 'Dual Language'} case analysis...`
+                      )}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-indigo-800 px-2 py-0.5 rounded text-amber-300">
+                    AI Translation Engine Active
+                  </span>
+                </div>
+              )}
               
               {/* Top toolbar */}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 no-print border-b border-slate-200 pb-4">

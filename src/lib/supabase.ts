@@ -341,28 +341,55 @@ export const saveOrUpdateUserProfile = async (
 
 export const fetchAllUsersForAdmin = async (): Promise<UserProfile[]> => {
   try {
-    const { data, error } = await supabase.from(PROFILES_TABLE).select("*");
-    if (error || !data) {
-      console.warn("Error fetching profiles from Supabase:", error);
-      return [];
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session || !session.access_token) {
+      throw new Error("No active Supabase session found. Please sign in as Super Admin.");
     }
-    return data.map((d: any) => ({
-      uid: d.id || d.uid,
+
+    const response = await fetch("/api/admin/users", {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${session.access_token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      let errMessage = `HTTP ${response.status} ${response.statusText}`;
+      try {
+        const errJson = await response.json();
+        if (errJson && errJson.error) {
+          errMessage = errJson.error;
+        }
+      } catch {
+        // ignore
+      }
+      throw new Error(`Admin users fetch failed: ${errMessage}`);
+    }
+
+    const result = await response.json();
+    const userList = Array.isArray(result) ? result : result.users || [];
+
+    return userList.map((d: any) => ({
+      uid: d.uid || d.id,
       email: d.email || "",
-      displayName: d.display_name || d.displayName || d.email?.split("@")[0] || "User",
-      photoURL: d.photo_url || d.photoURL,
+      displayName: d.displayName || d.email?.split("@")[0] || "User",
+      photoURL: d.photoURL,
       plan: (d.plan || "free") as PlanType,
       status: (d.status || "active") as AccountStatus,
       role: (d.role || (checkIsSuperAdmin(d.email) ? "superadmin" : "user")) as UserRole,
-      customCaseLimit: d.custom_case_limit || d.customCaseLimit,
-      adminNotes: d.admin_notes || d.adminNotes,
-      createdAt: d.created_at || d.createdAt || new Date().toISOString(),
-      lastLoginAt: d.last_login_at || d.lastLoginAt || new Date().toISOString(),
-      caseCount: d.case_count ?? d.caseCount ?? 0
+      customCaseLimit: d.customCaseLimit,
+      adminNotes: d.adminNotes,
+      createdAt: d.createdAt || new Date().toISOString(),
+      lastLoginAt: d.lastLoginAt || new Date().toISOString(),
+      caseCount: d.caseCount ?? 0,
+      hasProfile: d.hasProfile ?? true,
+      emailConfirmed: d.emailConfirmed ?? true,
+      phone: d.phone || ""
     }));
   } catch (error) {
-    console.error("Error fetching admin users from profiles table:", error);
-    return [];
+    console.error("Error fetching admin users from /api/admin/users:", error);
+    throw error;
   }
 };
 

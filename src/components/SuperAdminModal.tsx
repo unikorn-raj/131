@@ -526,7 +526,7 @@ export function SuperAdminModal({
                                   className="h-9 w-9 rounded-full border border-slate-700 object-cover shrink-0"
                                 />
                                 <div className="min-w-0">
-                                  <div className="flex items-center gap-1.5">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
                                     <span className="font-bold text-white truncate max-w-[200px]">
                                       {u.displayName || u.email.split("@")[0]}
                                     </span>
@@ -535,10 +535,23 @@ export function SuperAdminModal({
                                         SUPER ADMIN
                                       </span>
                                     )}
+                                    {u.hasProfile === false ? (
+                                      <span className="px-1.5 py-0.5 bg-slate-800 text-slate-400 text-[9px] font-bold rounded border border-slate-700" title="Auth user registered in Supabase Auth but profile table row not created yet">
+                                        No Profile
+                                      </span>
+                                    ) : (
+                                      <span className="px-1.5 py-0.5 bg-emerald-950/80 text-emerald-300 text-[9px] font-bold rounded border border-emerald-700/50">
+                                        Profile Active
+                                      </span>
+                                    )}
                                   </div>
-                                  <span className="text-[11px] text-slate-400 block truncate max-w-[220px]">
+                                  <span className="text-[11px] text-slate-300 block truncate max-w-[220px]">
                                     {u.email}
                                   </span>
+                                  <div className="text-[9px] text-slate-500 font-mono flex items-center gap-2 mt-0.5">
+                                    <span title={u.uid}>UID: {u.uid.slice(0, 8)}...</span>
+                                    <span>Joined: {new Date(u.createdAt).toLocaleDateString("en-IN")}</span>
+                                  </div>
                                   {u.adminNotes && (
                                     <span className="text-[10px] text-amber-300/80 italic block truncate max-w-[220px]">
                                       Note: {u.adminNotes}

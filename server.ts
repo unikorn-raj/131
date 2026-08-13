@@ -960,6 +960,177 @@ CRITICAL: Since this system serves Tier-2 Tamil Nadu, you MUST draft the complet
   }
 });
 
+// Admin User Directory Endpoint
+const SUPER_ADMIN_EMAILS_SERVER = [
+  "clearfile360@gmail.com",
+  "raj.oneplus6@gmail.com",
+  "clearconcept360@gmail.com",
+  "admin@nilam360.ai",
+  "superadmin@nilam360.ai"
+];
+
+function checkIsSuperAdminServer(email?: string | null, role?: string | null): boolean {
+  if (!email) return false;
+  if (role === "superadmin" || role === "admin" || role === "district_admin" || role === "super_admin") return true;
+  return SUPER_ADMIN_EMAILS_SERVER.some((e) => e.toLowerCase() === email.toLowerCase());
+}
+
+app.get("/api/admin/users", async (req: express.Request & { user?: any }, res: express.Response): Promise<any> => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Unauthorized: Missing authorization header" });
+    }
+
+    const token = authHeader.replace("Bearer ", "").trim();
+    if (!token || token === "undefined" || token === "null") {
+      return res.status(401).json({ error: "Unauthorized: Invalid or empty token" });
+    }
+
+    if (!supabaseServerClient) {
+      return res.status(500).json({ error: "Server configuration missing: Supabase client is not initialized" });
+    }
+
+    // 1. Validate token with Supabase Client (Anon Key)
+    const { data: { user }, error: authError } = await supabaseServerClient.auth.getUser(token);
+    if (authError || !user) {
+      return res.status(401).json({ error: "Unauthorized: Invalid or expired authentication token" });
+    }
+
+    // 2. Verify Super Admin privileges
+    const userRole = user.role || user.app_metadata?.role || user.user_metadata?.role;
+    if (!checkIsSuperAdminServer(user.email, userRole)) {
+      return res.status(403).json({ error: "Forbidden: Super Admin privileges required" });
+    }
+
+    // 3. Get SUPABASE_SERVICE_ROLE_KEY server-side only
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+    if (!serviceRoleKey) {
+      return res.status(500).json({ error: "Server configuration missing: SUPABASE_SERVICE_ROLE_KEY is not configured on the server" });
+    }
+
+    // 4. Initialize Supabase Admin Client using Service Role Key
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+
+    // 5. Fetch ALL Auth users using listUsers pagination
+    let authUsers: any[] = [];
+    let page = 1;
+    const perPage = 1000;
+    let hasMore = true;
+
+    while (hasMore) {
+      const { data: listData, error: listError } = await supabaseAdmin.auth.admin.listUsers({
+        page,
+        perPage
+      });
+
+      if (listError) {
+        console.error("Error listing auth users in server.ts:", listError);
+        return res.status(500).json({ error: `Failed to list auth users: ${listError.message}` });
+      }
+
+      if (listData && listData.users && listData.users.length > 0) {
+        authUsers = authUsers.concat(listData.users);
+        if (listData.users.length < perPage) {
+          hasMore = false;
+        } else {
+          page++;
+        }
+      } else {
+        hasMore = false;
+      }
+    }
+
+    // 6. Fetch profiles
+    const profilesMap = new Map<string, any>();
+    const profilesByEmailMap = new Map<string, any>();
+    try {
+      const { data: profiles, error: profError } = await supabaseAdmin.from("profiles").select("*");
+      if (!profError && profiles) {
+        profiles.forEach((p: any) => {
+          const key = p.id || p.uid;
+          if (key) profilesMap.set(key, p);
+          if (p.email) profilesByEmailMap.set(String(p.email).toLowerCase(), p);
+        });
+      }
+    } catch (e) {
+      console.warn("Notice: Could not fetch profiles table in server.ts admin endpoint:", e);
+    }
+
+    // 7. Fetch case counts
+    const caseCountMap = new Map<string, number>();
+    try {
+      const { data: cases, error: casesError } = await supabaseAdmin.from("property_cases").select("user_id, id");
+      if (!casesError && cases) {
+        cases.forEach((c: any) => {
+          if (c.user_id) {
+            caseCountMap.set(c.user_id, (caseCountMap.get(c.user_id) || 0) + 1);
+          }
+        });
+      }
+    } catch (e) {
+      console.warn("Notice: Could not fetch property_cases count in server.ts admin endpoint:", e);
+    }
+
+    // 8. Normalize User Directory
+    const normalizedUsers = authUsers.map((authUser) => {
+      const profile = profilesMap.get(authUser.id) || profilesByEmailMap.get(String(authUser.email || "").toLowerCase()) || null;
+      const caseCount = caseCountMap.get(authUser.id) || profile?.case_count || profile?.caseCount || 0;
+      const metadata = authUser.user_metadata || {};
+      const isSuper = checkIsSuperAdminServer(authUser.email, profile?.role || userRole);
+
+      const displayName =
+        profile?.display_name ||
+        profile?.displayName ||
+        metadata.full_name ||
+        metadata.name ||
+        metadata.displayName ||
+        (authUser.email ? authUser.email.split("@")[0] : "User");
+
+      const photoURL =
+        profile?.photo_url ||
+        profile?.photoURL ||
+        metadata.avatar_url ||
+        metadata.picture ||
+        `https://api.dicebear.com/7.x/initials/svg?seed=${authUser.id}&backgroundColor=6366f1`;
+
+      return {
+        uid: authUser.id,
+        id: authUser.id,
+        email: authUser.email || "",
+        displayName,
+        photoURL,
+        plan: profile?.plan || (isSuper ? "enterprise" : "free"),
+        status: profile?.status || (isSuper ? "vip" : "active"),
+        role: isSuper ? "superadmin" : (profile?.role || "user"),
+        customCaseLimit: profile?.custom_case_limit ?? profile?.customCaseLimit,
+        adminNotes: profile?.admin_notes || profile?.adminNotes,
+        createdAt: authUser.created_at || profile?.created_at || new Date().toISOString(),
+        lastLoginAt: authUser.last_sign_in_at || authUser.created_at || new Date().toISOString(),
+        emailConfirmed: Boolean(authUser.email_confirmed_at),
+        phone: authUser.phone || "",
+        caseCount,
+        hasProfile: Boolean(profile),
+        user_metadata: authUser.user_metadata || {},
+        app_metadata: authUser.app_metadata || {}
+      };
+    });
+
+    return res.json({
+      users: normalizedUsers,
+      total: normalizedUsers.length
+    });
+  } catch (err: any) {
+    console.error("Admin Users Server Error:", err);
+    return res.status(500).json({ error: err.message || "Internal server error" });
+  }
+});
+
 // Bootstrap full-stack serving
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {

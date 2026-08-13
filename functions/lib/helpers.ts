@@ -4,6 +4,9 @@ export interface Env {
   GEMINI_API_KEY?: string;
   VITE_SUPABASE_URL?: string;
   VITE_SUPABASE_ANON_KEY?: string;
+  SUPABASE_URL?: string;
+  SUPABASE_ANON_KEY?: string;
+  SUPABASE_SERVICE_ROLE_KEY?: string;
 }
 
 export function jsonResponse(data: any, status = 200, extraHeaders: Record<string, string> = {}): Response {

@@ -300,6 +300,9 @@ export interface UserProfile {
   createdAt: string;
   lastLoginAt: string;
   caseCount?: number;
+  hasProfile?: boolean;
+  emailConfirmed?: boolean;
+  phone?: string;
 }
 
 export interface AdminAuditLog {

@@ -289,7 +289,7 @@ function safeStr(val: any): string {
 
 function renderVal(val: any, fallback: any = "Information Not Specified / Unavailable"): string {
   if (val === null || val === undefined || val === "" || (Array.isArray(val) && val.length === 0)) {
-    return `<span style="color:#94a3b8; font-style:italic; font-size: 9.5px;">[ ${safeStr(fallback)} ]</span>`;
+    return `<span style="color:#94a3b8; font-style:italic; font-size: 9px;">[ ${safeStr(fallback)} ]</span>`;
   }
   if (typeof val === "boolean") {
     return val ? "Yes" : "No";
@@ -299,10 +299,10 @@ function renderVal(val: any, fallback: any = "Information Not Specified / Unavai
 
 function renderList(items?: string[] | null, emptyMsg = "No records listed"): string {
   if (!items || items.length === 0) {
-    return `<div style="color:#94a3b8; font-style:italic; font-size:9.5px; padding: 2px 0;">[ ${safeStr(emptyMsg)} ]</div>`;
+    return `<div style="color:#94a3b8; font-style:italic; font-size:9px; padding: 2px 0;">[ ${safeStr(emptyMsg)} ]</div>`;
   }
   return `
-    <ul style="margin: 4px 0; padding-left: 16px; font-size: 9.5px; color: #334155; line-height: 1.5;">
+    <ul style="margin: 3px 0; padding-left: 16px; font-size: 9px; color: #334155; line-height: 1.45; word-break: break-word; overflow-wrap: break-word;">
       ${items.map(it => `<li style="margin-bottom: 2px;">${safeStr(it)}</li>`).join("")}
     </ul>
   `;
@@ -310,9 +310,9 @@ function renderList(items?: string[] | null, emptyMsg = "No records listed"): st
 
 function renderSectionHeader(num: string, title: string): string {
   return `
-    <div style="page-break-inside: avoid; break-inside: avoid; page-break-after: avoid; break-after: avoid; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #312e81; padding-bottom: 4px;">
-      <h3 style="font-size: 11.5px; font-weight: 800; color: #1e1b4b; text-transform: uppercase; letter-spacing: 0.04em; margin: 0; display: flex; align-items: center; gap: 8px;">
-        <span style="background-color: #312e81; color: #ffffff; padding: 2px 6px; border-radius: 3px; font-size: 10px;">STAGE ${safeStr(num)}</span>
+    <div style="page-break-inside: avoid; break-inside: avoid; page-break-after: avoid; break-after: avoid; margin-top: 18px; margin-bottom: 8px; border-bottom: 2px solid #1e1b4b; padding-bottom: 4px;">
+      <h3 style="font-size: 11px; font-weight: 800; color: #1e1b4b; text-transform: uppercase; letter-spacing: 0.04em; margin: 0; display: flex; align-items: center; gap: 8px;">
+        <span style="background-color: #1e1b4b; color: #ffffff; padding: 2px 6px; border-radius: 3px; font-size: 9.5px; font-weight: 800;">STAGE ${safeStr(num)}</span>
         <span>${safeStr(title)}</span>
       </h3>
     </div>
@@ -344,6 +344,33 @@ export function generateCompleteCaseReportHTML(caseData: PropertyCase): string {
   const immAct: any = caseData.immediateAction || {};
   const draft: any = caseData.customDocumentDraft || {};
 
+  // Resolve Stage 13 smart fallbacks from existing case data (Stages 00-12)
+  const problemIdentified = clientReply.problemIdentified || stage2.realIssue || stage1.specificType || (caseData.rawDescription ? caseData.rawDescription.slice(0, 180) + '...' : "");
+  const legalPosition = clientReply.legalPosition || stage2.rootCauseStatement || stage12?.strongestLegalRoute?.justification || stage11?.strategyRecommendationFromPrecedents || (Array.isArray(stage5?.rightsViolated) && stage5.rightsViolated.length > 0 ? `Rights evaluated: ${stage5.rightsViolated.join("; ")}` : "");
+  const immediateNextStep = clientReply.immediateNextStep || stage12?.priorityNextActions?.[0]?.action || stage8.primaryRemedy || (immAct.within24Hours?.[0]) || "Apply for certified encumbrance certificate and revenue extracts before jurisdictional authority.";
+  const expectedAuthority = clientReply.expectedAuthority || stage12?.priorityNextActions?.[0]?.targetAuthority || stage12?.strongestLegalRoute?.routeName || stage7.primaryAuthority || intake.courtOrForum || "Jurisdictional Revenue / SRO Authority";
+  const estimatedTimeline = clientReply.estimatedTimeline || stage12?.priorityNextActions?.[0]?.timeline || stage12?.strongestLegalRoute?.timeToResolutionEst || stage9.urgencyLevel || "15 to 30 statutory working days";
+
+  const within24Hours = (immAct.within24Hours && immAct.within24Hours.length > 0)
+    ? immAct.within24Hours
+    : (stage12?.priorityNextActions?.slice(0, 1).map((a: any) => `${a.action}${a.targetAuthority ? ` (${a.targetAuthority})` : ''}`) || ["Verify original title deeds and obtain latest Encumbrance Certificate (EC) online via TNREGINET."]);
+  
+  const within7Days = (immAct.within7Days && immAct.within7Days.length > 0)
+    ? immAct.within7Days
+    : (stage12?.priorityNextActions?.slice(1, 2).map((a: any) => `${a.action}${a.targetAuthority ? ` (${a.targetAuthority})` : ''}`) || (stage6.missing && stage6.missing.length > 0 ? stage6.missing.slice(0, 2).map((m: string) => `Obtain certified copy of: ${m}`) : ["Draft and submit formal representation petition before jurisdictional authority."]));
+  
+  const within30Days = (immAct.within30Days && immAct.within30Days.length > 0)
+    ? immAct.within30Days
+    : (stage12?.priorityNextActions?.slice(2, 4).map((a: any) => `${a.action}${a.targetAuthority ? ` (${a.targetAuthority})` : ''}`) || (stage8.alternativeOptions && stage8.alternativeOptions.length > 0 ? stage8.alternativeOptions.slice(0, 2) : ["Follow up on inquiry proceedings and obtain certified disposal order."]));
+
+  const mandatoryDocs = (docsReq.mandatory && docsReq.mandatory.length > 0)
+    ? docsReq.mandatory
+    : (stage6.available && stage6.available.length > 0
+        ? stage6.available
+        : (stage6.documentary && stage6.documentary.length > 0
+            ? stage6.documentary
+            : ["Registered Parent Title Deed", "Updated Patta / Chitta Revenue Extract", "Encumbrance Certificate (EC)", "Identity & Address Proof"]));
+
   return `
     <style>
       .unikorn-complete-pdf * {
@@ -352,36 +379,44 @@ export function generateCompleteCaseReportHTML(caseData: PropertyCase): string {
       .unikorn-complete-pdf {
         font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
         color: #0f172a;
-        line-height: 1.5;
+        line-height: 1.45;
+        width: 100%;
       }
       .pdf-block {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
-        margin-bottom: 14px;
+        margin-bottom: 12px;
       }
       .pdf-table {
         width: 100%;
+        table-layout: fixed;
         border-collapse: collapse;
-        margin-top: 6px;
-        margin-bottom: 10px;
-        font-size: 9.5px;
+        margin-top: 4px;
+        margin-bottom: 8px;
+        font-size: 9px;
       }
       .pdf-table th {
         background-color: #f1f5f9;
         color: #0f172a;
         font-weight: 800;
         text-align: left;
-        padding: 5px 8px;
+        padding: 5px 6px;
         border: 1px solid #cbd5e1;
         text-transform: uppercase;
         font-size: 8.5px;
         letter-spacing: 0.02em;
+        vertical-align: top;
+        word-break: break-word;
+        overflow-wrap: break-word;
       }
       .pdf-table td {
-        padding: 5px 8px;
+        padding: 4px 6px;
         border: 1px solid #e2e8f0;
         color: #334155;
         vertical-align: top;
+        line-height: 1.45;
+        word-break: break-word;
+        overflow-wrap: break-word;
       }
     </style>
 
@@ -644,10 +679,11 @@ export function generateCompleteCaseReportHTML(caseData: PropertyCase): string {
       <!-- SECTION 07: STAGE 06 - DOCUMENTARY EVIDENCE AUDIT -->
       ${renderSectionHeader("06", "Documentary Evidence Audit & Strength Assessment")}
       <div class="pdf-block">
-        <div style="margin-bottom: 6px; font-size: 9.5px; color: #0f172a;">
-          Overall Evidence Strength Rating: 
-          <span style="font-weight: 900; color: #1e1b4b; background-color: #e0e7ff; padding: 2px 8px; border-radius: 4px; border: 1px solid #c7d2fe;">
-            ${renderVal(stage6.evidenceStrength, "Moderate")}
+        <!-- Evidence Strength Rating Card - Standalone full-width banner, No Crowding -->
+        <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 12px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; page-break-inside: avoid; break-inside: avoid;">
+          <span style="font-size: 9px; font-weight: 700; color: #334155;">Overall Evidence Strength Assessment:</span>
+          <span style="font-size: 9px; font-weight: 900; color: #1e1b4b; background-color: #e0e7ff; padding: 2px 10px; border-radius: 4px; border: 1px solid #c7d2fe;">
+            ${renderVal(stage6.evidenceStrength, "Moderate")} Rating
           </span>
         </div>
         <table class="pdf-table">
@@ -661,7 +697,7 @@ export function generateCompleteCaseReportHTML(caseData: PropertyCase): string {
           </tr>
         </table>
 
-        <p style="font-size: 9px; font-weight: 800; color: #0f172a; margin: 8px 0 2px 0;">Categorized Evidence Inventory:</p>
+        <p style="font-size: 8.5px; font-weight: 800; color: #0f172a; margin: 6px 0 2px 0;">Categorized Evidence Inventory:</p>
         <table class="pdf-table">
           <tr>
             <th style="width: 25%;">Documentary Proofs</th>
@@ -791,126 +827,142 @@ export function generateCompleteCaseReportHTML(caseData: PropertyCase): string {
       </div>
 
       <!-- SECTION 12: STAGE 11 - PRECEDENT INTELLIGENCE & CASE LAWS -->
-      ${renderSectionHeader("11", "Precedent Intelligence, Case Laws & Government Orders")}
-      <div class="pdf-block">
+      <div style="page-break-inside: avoid; break-inside: avoid;">
+        ${renderSectionHeader("11", "Precedent Intelligence, Case Laws & Government Orders")}
         ${stage11 ? `
-          <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 12px; margin-bottom: 8px;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 9.5px;">
+          <div style="background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; margin-bottom: 6px;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 9px;">
               <tr>
-                <td style="width: 25%;"><b>Similar Cases Analyzed:</b> ${renderVal(stage11.similarCasesCount, 0)}</td>
-                <td style="width: 25%;"><b>Avg Similarity Score:</b> ${renderVal(stage11.averageSimilarityScore, 0)}%</td>
-                <td style="width: 50%; text-align: right;">
+                <td style="width: 25%; border: none; padding: 2px 4px;"><b>Similar Cases:</b> ${renderVal(stage11.similarCasesCount, 0)}</td>
+                <td style="width: 25%; border: none; padding: 2px 4px;"><b>Avg Similarity:</b> ${renderVal(stage11.averageSimilarityScore, 0)}%</td>
+                <td style="width: 50%; border: none; padding: 2px 4px; text-align: right;">
                   <b>Success Probability:</b> 
-                  <span style="color: #047857; font-weight: 900;">
+                  <span style="color: #047857; font-weight: 900; background: #dcfce7; padding: 1px 6px; border-radius: 3px;">
                     ${renderVal(stage11.successProbability?.percentage, 0)}% (${renderVal(stage11.successProbability?.rating, "Moderate")})
                   </span>
                 </td>
               </tr>
             </table>
             ${stage11.successProbability?.disclaimer ? `
-              <p style="font-size: 8px; color: #64748b; margin: 4px 0 0 0; font-style: italic;">
+              <p style="font-size: 8px; color: #64748b; margin: 3px 0 0 0; font-style: italic;">
                 Note: ${safeStr(stage11.successProbability.disclaimer)}
               </p>
             ` : ""}
           </div>
+        ` : ""}
+      </div>
 
-          <p style="font-size: 9px; font-weight: 800; color: #0f172a; margin: 6px 0 2px 0;">Overarching Judicial Principles:</p>
+      <div class="pdf-block">
+        ${stage11 ? `
+          <p style="font-size: 8.5px; font-weight: 800; color: #0f172a; margin: 4px 0 2px 0;">Overarching Judicial Principles:</p>
           ${renderList(stage11.overallPrinciples, "No legal principles enumerated")}
 
           <!-- SIMILAR JUDICIAL PRECEDENTS TABLE -->
-          <p style="font-size: 9px; font-weight: 800; color: #0f172a; margin: 8px 0 2px 0;">High-Bench Judicial Precedents Analyzed:</p>
+          <p style="font-size: 8.5px; font-weight: 800; color: #0f172a; margin: 6px 0 2px 0;">High-Bench Judicial Precedents Analyzed:</p>
           ${(() => {
             const casesList = stage11.similarCases || [];
             if (casesList.length === 0) {
-              return `<div style="color:#94a3b8; font-style:italic; font-size:9.5px;">[ No similar court cases found or indexed ]</div>`;
+              return `<div style="color:#94a3b8; font-style:italic; font-size:9px;">[ No similar court cases found or indexed ]</div>`;
             }
             return `
-              <table class="pdf-table">
-                <tr>
-                  <th style="width: 22%;">Case Title & Citation</th>
-                  <th style="width: 10%;">Court / Year</th>
-                  <th style="width: 10%;">Match</th>
-                  <th style="width: 28%;">Reasoning & Principles</th>
-                  <th style="width: 15%;">Outcome</th>
-                  <th style="width: 15%;">Why It Matters</th>
-                </tr>
-                ${casesList.map((c: any) => `
+              <table class="pdf-table" style="font-size: 8.5px;">
+                <thead>
                   <tr>
-                    <td><b>${safeStr(c.caseName)}</b><br/><span style="font-family:monospace; font-size:8.5px; color:#4f46e5;">${safeStr(c.citationNumber)}</span></td>
-                    <td>${safeStr(c.court)}<br/>${safeStr(c.year)}</td>
-                    <td style="text-align:center; font-weight:800; color:#047857;">${safeStr(c.similarityScore)}%</td>
-                    <td>${safeStr(c.courtReasoningSummary)}</td>
-                    <td><b style="color:#1e1b4b;">${safeStr(c.finalOutcome)}</b></td>
-                    <td>${safeStr(c.whyItMatters)}</td>
+                    <th style="width: 22%;">Case Title & Citation</th>
+                    <th style="width: 11%;">Court / Year</th>
+                    <th style="width: 8%; text-align: center;">Match</th>
+                    <th style="width: 32%;">Reasoning & Principles</th>
+                    <th style="width: 12%;">Outcome</th>
+                    <th style="width: 15%;">Why It Matters</th>
                   </tr>
-                `).join("")}
+                </thead>
+                <tbody>
+                  ${casesList.map((c: any) => `
+                    <tr>
+                      <td><b>${safeStr(c.caseName)}</b><br/><span style="font-family:monospace; font-size:8px; color:#4f46e5;">${safeStr(c.citationNumber)}</span></td>
+                      <td>${safeStr(c.court)}<br/>${safeStr(c.year)}</td>
+                      <td style="text-align:center; font-weight:800; color:#047857;">${safeStr(c.similarityScore)}%</td>
+                      <td style="line-height: 1.4; word-break: break-word;">${safeStr(c.courtReasoningSummary)}</td>
+                      <td><b style="color:#1e1b4b;">${safeStr(c.finalOutcome)}</b></td>
+                      <td style="line-height: 1.4; word-break: break-word;">${safeStr(c.whyItMatters)}</td>
+                    </tr>
+                  `).join("")}
+                </tbody>
               </table>
             `;
           })()}
 
           <!-- GOVERNMENT ORDERS (G.O.) TABLE -->
-          <p style="font-size: 9px; font-weight: 800; color: #0f172a; margin: 8px 0 2px 0;">Binding Government Orders (G.O.s) Referenced:</p>
+          <p style="font-size: 8.5px; font-weight: 800; color: #0f172a; margin: 6px 0 2px 0;">Binding Government Orders (G.O.s) Referenced:</p>
           ${(() => {
             const gos = stage11.authoritiesSummary?.governmentOrders || [];
             if (gos.length === 0) {
-              return `<div style="color:#94a3b8; font-style:italic; font-size:9.5px; margin-bottom:6px;">[ No specific Government Orders cited ]</div>`;
+              return `<div style="color:#94a3b8; font-style:italic; font-size:9px; margin-bottom:4px;">[ No specific Government Orders cited ]</div>`;
             }
             return `
-              <table class="pdf-table">
-                <tr>
-                  <th style="width: 20%;">G.O. Number</th>
-                  <th style="width: 12%;">Date</th>
-                  <th style="width: 20%;">Department</th>
-                  <th style="width: 24%;">Subject</th>
-                  <th style="width: 24%;">Relevance</th>
-                </tr>
-                ${gos.map((go: any) => `
+              <table class="pdf-table" style="font-size: 8.5px;">
+                <thead>
                   <tr>
-                    <td><b>${safeStr(go.orderNumber)}</b></td>
-                    <td>${safeStr(go.date)}</td>
-                    <td>${safeStr(go.department)}</td>
-                    <td>${safeStr(go.subject)}</td>
-                    <td>${safeStr(go.relevance)}</td>
+                    <th style="width: 18%;">G.O. Number</th>
+                    <th style="width: 12%;">Date</th>
+                    <th style="width: 18%;">Department</th>
+                    <th style="width: 26%;">Subject</th>
+                    <th style="width: 26%;">Relevance</th>
                   </tr>
-                `).join("")}
+                </thead>
+                <tbody>
+                  ${gos.map((go: any) => `
+                    <tr>
+                      <td><b>${safeStr(go.orderNumber)}</b></td>
+                      <td>${safeStr(go.date)}</td>
+                      <td>${safeStr(go.department)}</td>
+                      <td>${safeStr(go.subject)}</td>
+                      <td>${safeStr(go.relevance)}</td>
+                    </tr>
+                  `).join("")}
+                </tbody>
               </table>
             `;
           })()}
 
           <!-- CIRCULARS TABLE -->
-          <p style="font-size: 9px; font-weight: 800; color: #0f172a; margin: 8px 0 2px 0;">Departmental Revenue / Registration Circulars:</p>
+          <p style="font-size: 8.5px; font-weight: 800; color: #0f172a; margin: 6px 0 2px 0;">Departmental Revenue / Registration Circulars:</p>
           ${(() => {
             const circs = stage11.authoritiesSummary?.circulars || [];
             if (circs.length === 0) {
-              return `<div style="color:#94a3b8; font-style:italic; font-size:9.5px; margin-bottom:6px;">[ No specific Circulars cited ]</div>`;
+              return `<div style="color:#94a3b8; font-style:italic; font-size:9px; margin-bottom:4px;">[ No specific Circulars cited ]</div>`;
             }
             return `
-              <table class="pdf-table">
-                <tr>
-                  <th style="width: 20%;">Circular No</th>
-                  <th style="width: 12%;">Date</th>
-                  <th style="width: 20%;">Department</th>
-                  <th style="width: 24%;">Subject</th>
-                  <th style="width: 24%;">Relevance</th>
-                </tr>
-                ${circs.map((circ: any) => `
+              <table class="pdf-table" style="font-size: 8.5px;">
+                <thead>
                   <tr>
-                    <td><b>${safeStr(circ.circularNumber)}</b></td>
-                    <td>${safeStr(circ.date)}</td>
-                    <td>${safeStr(circ.department)}</td>
-                    <td>${safeStr(circ.subject)}</td>
-                    <td>${safeStr(circ.relevance)}</td>
+                    <th style="width: 18%;">Circular No</th>
+                    <th style="width: 12%;">Date</th>
+                    <th style="width: 18%;">Department</th>
+                    <th style="width: 26%;">Subject</th>
+                    <th style="width: 26%;">Relevance</th>
                   </tr>
-                `).join("")}
+                </thead>
+                <tbody>
+                  ${circs.map((circ: any) => `
+                    <tr>
+                      <td><b>${safeStr(circ.circularNumber)}</b></td>
+                      <td>${safeStr(circ.date)}</td>
+                      <td>${safeStr(circ.department)}</td>
+                      <td>${safeStr(circ.subject)}</td>
+                      <td>${safeStr(circ.relevance)}</td>
+                    </tr>
+                  `).join("")}
+                </tbody>
               </table>
             `;
           })()}
 
-          <p style="font-size: 9px; font-weight: 800; color: #0f172a; margin: 6px 0 2px 0;">Relevant Acts & Statutory Provisions:</p>
+          <p style="font-size: 8.5px; font-weight: 800; color: #0f172a; margin: 6px 0 2px 0;">Relevant Acts & Statutory Provisions:</p>
           ${renderList(stage11.authoritiesSummary?.statutesList, "No statutory acts listed")}
 
-          <p style="font-size: 9px; font-weight: 800; color: #0f172a; margin: 6px 0 2px 0;">Precedent-Based Legal Strategy Recommendation:</p>
-          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 8px 10px; font-size: 9.5px; color: #334155; line-height: 1.5;">
+          <p style="font-size: 8.5px; font-weight: 800; color: #0f172a; margin: 6px 0 2px 0;">Precedent-Based Legal Strategy Recommendation:</p>
+          <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 6px 8px; font-size: 9px; color: #334155; line-height: 1.45;">
             ${renderVal(stage11.strategyRecommendationFromPrecedents)}
           </div>
         ` : `
@@ -1050,28 +1102,28 @@ export function generateCompleteCaseReportHTML(caseData: PropertyCase): string {
       </div>
 
       <!-- SECTION 14: ADVOCATE REVIEW & CLIENT BRIEF -->
-      ${renderSectionHeader("13", "Advocate Review, Client Action Brief & Legal Drafts")}
       <div class="pdf-block">
+        ${renderSectionHeader("13", "Advocate Review, Client Action Brief & Legal Drafts")}
         <table class="pdf-table">
           <tr>
             <th style="width: 30%;">Client Problem Identified</th>
-            <td style="width: 70%; line-height: 1.5;">${renderVal(clientReply.problemIdentified)}</td>
+            <td style="width: 70%; line-height: 1.45;">${renderVal(problemIdentified)}</td>
           </tr>
           <tr>
             <th>Legal Position Summary</th>
-            <td style="line-height: 1.5;">${renderVal(clientReply.legalPosition)}</td>
+            <td style="line-height: 1.45;">${renderVal(legalPosition)}</td>
           </tr>
           <tr>
             <th>Immediate Next Step</th>
-            <td><b>${renderVal(clientReply.immediateNextStep)}</b></td>
+            <td><b>${renderVal(immediateNextStep)}</b></td>
           </tr>
           <tr>
             <th>Target Forum / Est. Timeline</th>
-            <td>${renderVal(clientReply.expectedAuthority)} (${renderVal(clientReply.estimatedTimeline)})</td>
+            <td>${renderVal(expectedAuthority)} (${renderVal(estimatedTimeline)})</td>
           </tr>
         </table>
 
-        <p style="font-size: 9px; font-weight: 800; color: #0f172a; margin: 8px 0 2px 0;">Immediate Action Schedule:</p>
+        <p style="font-size: 8.5px; font-weight: 800; color: #0f172a; margin: 6px 0 2px 0;">Immediate Action Schedule:</p>
         <table class="pdf-table">
           <tr>
             <th style="width: 33%;">Within 24 Hours</th>
@@ -1079,30 +1131,30 @@ export function generateCompleteCaseReportHTML(caseData: PropertyCase): string {
             <th style="width: 34%;">Within 30 Days</th>
           </tr>
           <tr>
-            <td>${renderList(immAct.within24Hours, "None listed")}</td>
-            <td>${renderList(immAct.within7Days, "None listed")}</td>
-            <td>${renderList(immAct.within30Days, "None listed")}</td>
+            <td>${renderList(within24Hours, "None listed")}</td>
+            <td>${renderList(within7Days, "None listed")}</td>
+            <td>${renderList(within30Days, "None listed")}</td>
           </tr>
         </table>
 
-        <p style="font-size: 9px; font-weight: 800; color: #0f172a; margin: 8px 0 2px 0;">Mandatory Client Documents Checklist:</p>
-        ${renderList(docsReq.mandatory, "No mandatory documents specified")}
+        <p style="font-size: 8.5px; font-weight: 800; color: #0f172a; margin: 6px 0 2px 0;">Mandatory Client Documents Checklist:</p>
+        ${renderList(mandatoryDocs, "No mandatory documents specified")}
 
         ${draft && draft.documentTitle ? `
-          <div style="margin-top: 10px; background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 8px 10px;">
-            <p style="font-size: 9px; font-weight: 800; color: #0f172a; margin: 0 0 4px 0;">Generated Representation / Notice Draft Record:</p>
-            <p style="font-size: 9.5px; font-weight: 700; color: #312e81; margin: 0 0 2px 0;">Title: ${safeStr(draft.documentTitle)}</p>
+          <div style="margin-top: 6px; background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 8px;">
+            <p style="font-size: 8.5px; font-weight: 800; color: #0f172a; margin: 0 0 2px 0;">Generated Representation / Notice Draft Record:</p>
+            <p style="font-size: 9px; font-weight: 700; color: #1e1b4b; margin: 0 0 2px 0;">Title: ${safeStr(draft.documentTitle)}</p>
             <p style="font-size: 8px; font-family: monospace; color: #64748b; margin: 0;">SHA-256 Hash Seal: ${safeStr(draft.sha256Hash || "N/A")}</p>
           </div>
         ` : ""}
       </div>
 
       <!-- FINAL ENTERPRISE FOOTER -->
-      <div class="pdf-block" style="margin-top: 24px; padding-top: 10px; border-top: 2px solid #0f172a; display: flex; justify-content: space-between; align-items: flex-start; font-size: 8.5px; color: #64748b; font-family: monospace;">
+      <div class="pdf-block" style="margin-top: 14px; padding-top: 8px; border-top: 2px solid #0f172a; display: flex; justify-content: space-between; align-items: flex-start; font-size: 8px; color: #64748b; font-family: monospace;">
         <div>
           <p style="font-weight: 800; color: #0f172a; margin: 0 0 2px 0;">NILAM360 ADVOCATE ENTERPRISE SEAL & AUDIT TRAIL</p>
           <p style="margin: 0; color: #475569;">VERIFIED SHA-256 HASH: ${safeStr(draft.sha256Hash || "VERIFIED-TAMPER-PROOF-CASE-RECORD")}</p>
-          <p style="margin: 2px 0 0 0; color: #94a3b8;">Nilam360 AI Legal Intelligence System • Version 1.0</p>
+          <p style="margin: 2px 0 0 0; color: #94a3b8;">Nilam360 AI Legal Intelligence System • Enterprise Edition</p>
         </div>
         <div style="text-align: right;">
           <p style="margin: 0; font-weight: 800; color: #0f172a;">CONFIDENTIAL & PRIVILEGED LEGAL WORK PRODUCT</p>

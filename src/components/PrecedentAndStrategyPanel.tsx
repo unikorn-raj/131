@@ -141,22 +141,23 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
   const successPercentage = stage12?.strongestLegalRoute?.successProbabilityPercentage || 85;
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl text-white space-y-6">
+    <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs text-slate-900 space-y-6">
       
       {/* Top Banner Header */}
-      <div className="border-b border-slate-800 pb-5">
+      <div className="border-b border-slate-200 pb-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-3 py-0.5 bg-purple-900/80 border border-purple-700 text-purple-200 text-[10px] font-black rounded-full uppercase tracking-widest flex items-center gap-1.5">
-                <Sparkles className="h-3 w-3 text-amber-400 animate-pulse" />
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="w-1.5 h-3.5 bg-purple-700 rounded mr-1"></span>
+              <span className="badge-ai-intel">
+                <Sparkles className="h-3 w-3 text-purple-700" />
                 STAGE 11 & 12 • LEGAL INTELLIGENCE ENGINE
               </span>
             </div>
-            <h2 className="text-xl font-black tracking-tight font-display text-white">
+            <h2 className="text-xl font-bold tracking-tight font-display text-slate-900">
               {t("முன்மாதிரி தீர்ப்புகள் & சட்ட உத்தி சிமுலேட்டர்", "Precedent Intelligence & Legal Strategy Simulator")}
             </h2>
-            <p className="text-xs text-slate-400 mt-1 font-medium">
+            <p className="text-xs text-slate-500 mt-1 font-medium">
               {t(
                 "மெட்ராஸ் உயர் நீதிமன்றத் தீர்ப்புகள், தமிழ்நாடு அரசாணைகள் & வெற்றி வாய்ப்பு கணிப்பு.",
                 "Madras High Court precedents, Tamil Nadu GOs, and AI strategy simulation."
@@ -164,16 +165,16 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
             </p>
           </div>
 
-          <div className="flex items-center gap-3 bg-purple-950/60 border border-purple-800/80 p-3.5 rounded-2xl shrink-0">
+          <div className="flex items-center gap-3 bg-purple-50 border border-purple-200 p-3.5 rounded-xl shrink-0">
             <div>
-              <span className="text-[9px] font-extrabold text-amber-300 uppercase tracking-widest block">
+              <span className="text-[9px] font-extrabold text-purple-900 uppercase tracking-widest block">
                 {t("கணிக்கப்பட்ட வெற்றி வாய்ப்பு", "Simulated Success Probability")}
               </span>
-              <span className="text-sm font-bold text-white block">
+              <span className="text-xs font-bold text-slate-800 block">
                 {t("வலுவான சட்ட நிலை", "Strong Legal Standing")}
               </span>
             </div>
-            <div className="w-14 h-14 rounded-full bg-purple-700 text-white font-black text-lg flex items-center justify-center shrink-0 border-2 border-amber-300 shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-purple-800 text-white font-extrabold text-base flex items-center justify-center shrink-0 shadow-xs">
               {successPercentage}%
             </div>
           </div>
@@ -183,10 +184,10 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
         <div className="flex items-center gap-2 pt-4">
           <button
             onClick={() => setActiveTab("stage11")}
-            className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
               activeTab === "stage11"
-                ? "bg-purple-700 text-white shadow-xs"
-                : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
+                ? "bg-purple-800 text-white shadow-xs"
+                : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
             }`}
           >
             <BookOpen className="h-4 w-4" />
@@ -195,13 +196,13 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
 
           <button
             onClick={() => setActiveTab("stage12")}
-            className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
               activeTab === "stage12"
-                ? "bg-purple-700 text-white shadow-xs"
-                : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
+                ? "bg-purple-800 text-white shadow-xs"
+                : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
             }`}
           >
-            <Target className="h-4 w-4 text-amber-400" />
+            <Target className="h-4 w-4 text-purple-600" />
             <span>{t("நிலை 12 - சட்ட உத்தி சிமுலேட்டர் (Strategy)", "Stage 12 - Strategy Simulator")}</span>
           </button>
         </div>
@@ -213,39 +214,39 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
           
           {/* Summary Stat Grid for Precedents */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 shadow-sm">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                 {t("ஒத்த தீர்ப்புகள்", "Similar Judgments")}
               </span>
-              <div className="text-2xl font-black text-purple-300 flex items-center gap-2">
+              <div className="text-xl font-bold text-purple-900 flex items-center gap-2">
                 <span>{similarCases.length}</span>
-                <span className="text-xs font-bold text-slate-400">{t("தீர்ப்புகள்", "Cases Found")}</span>
+                <span className="text-xs font-semibold text-slate-500">{t("தீர்ப்புகள்", "Cases Found")}</span>
               </div>
             </div>
 
-            <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 shadow-sm">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                 {t("சராசரி ஒற்றுமை வீதம்", "Avg Similarity Score")}
               </span>
-              <div className="text-2xl font-black text-emerald-400">
+              <div className="text-xl font-bold text-emerald-700">
                 {stage11?.averageSimilarityScore || 91}%
               </div>
             </div>
 
-            <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 shadow-sm">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                 {t("உயர் நீதிமன்றத் தீர்ப்புகள்", "High Court Rulings")}
               </span>
-              <div className="text-2xl font-black text-indigo-300">
+              <div className="text-xl font-bold text-slate-900">
                 {stage11?.authoritiesSummary?.highCourtCount || 3} {t("தீர்ப்புகள்", "Rulings")}
               </div>
             </div>
 
-            <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 shadow-sm">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                 {t("அரசாணைகள் & சுற்றறிக்கைகள்", "Govt Orders & Circulars")}
               </span>
-              <div className="text-2xl font-black text-amber-300">
+              <div className="text-xl font-bold text-slate-900">
                 {govOrders.length + circs.length} {t("சான்றுகள்", "Authorities")}
               </div>
             </div>
@@ -256,12 +257,12 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
             
             {/* Left Case List */}
             <div className="lg:col-span-5 space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center justify-between">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center justify-between">
                 <span>{t("முக்கிய தீர்ப்புகளின் நூலகம்", "Precedent Library")}</span>
-                <span className="text-[10px] text-purple-400 font-bold">{filteredCases.length} items</span>
+                <span className="text-[10px] text-purple-800 font-bold">{filteredCases.length} items</span>
               </h3>
 
-              <div className="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
                 {filteredCases.map((c, idx) => {
                   const currentId = c.caseId || c.id || `case_${idx}`;
                   const isSelected = (selectedCase?.caseId || selectedCase?.id) === currentId;
@@ -273,27 +274,27 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
                     <div
                       key={currentId}
                       onClick={() => setSelectedCaseId(currentId)}
-                      className={`p-3.5 rounded-2xl border transition-all cursor-pointer text-left ${
+                      className={`p-3.5 rounded-xl border transition-all cursor-pointer text-left ${
                         isSelected
-                          ? "bg-purple-900/60 border-purple-500 shadow-md"
-                          : "bg-slate-800/60 border-slate-700 hover:border-slate-600 hover:bg-slate-800"
+                          ? "bg-purple-50/70 border-purple-400 shadow-xs ring-1 ring-purple-300"
+                          : "bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50"
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-[10px] font-mono font-bold text-amber-300 bg-amber-950/60 border border-amber-800 px-2 py-0.5 rounded">
+                        <span className="text-[10px] font-mono font-bold text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
                           {itemCitation}
                         </span>
-                        <span className="text-xs font-black text-emerald-400 flex items-center gap-1">
+                        <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded flex items-center gap-1">
                           <span>{c.similarityScore ?? 0}%</span>
-                          <span className="text-[9px] text-slate-400 font-normal">{t("ஒற்றுமை", "Match")}</span>
+                          <span className="text-[9px] font-normal">{t("ஒற்றுமை", "Match")}</span>
                         </span>
                       </div>
 
-                      <h4 className="text-xs font-bold text-white leading-snug line-clamp-2 mb-1">
+                      <h4 className="text-xs font-bold text-slate-900 leading-snug line-clamp-2 mb-1">
                         {itemTitle}
                       </h4>
 
-                      <p className="text-[10px] text-slate-300 line-clamp-1 font-medium">
+                      <p className="text-[10px] text-slate-500 line-clamp-1 font-medium">
                         {itemCategory}
                       </p>
                     </div>
@@ -303,55 +304,55 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
             </div>
 
             {/* Right Case Deep-Dive Viewer */}
-            <div className="lg:col-span-7 bg-slate-800/90 border border-slate-700 rounded-2xl p-5 space-y-4">
-              <div className="border-b border-slate-700 pb-3 flex items-start justify-between gap-3">
+            <div className="lg:col-span-7 bg-slate-50/70 border border-slate-200 rounded-xl p-5 space-y-4">
+              <div className="border-b border-slate-200 pb-3 flex items-start justify-between gap-3">
                 <div>
-                  <span className="text-[10px] font-mono font-bold text-amber-300 bg-amber-950 px-2.5 py-0.5 rounded border border-amber-800">
+                  <span className="text-[10px] font-mono font-bold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200">
                     {selectedCase.citation || selectedCase.citationNumber || t("சான்றெண் பெறப்படவில்லை", "Citation Not Available")}
                   </span>
-                  <h3 className="text-sm font-bold text-white mt-1.5">
+                  <h3 className="text-sm font-bold text-slate-900 mt-1.5">
                     {selectedCase.title || selectedCase.caseName || t("வழக்கு தலைப்பு கிடைக்கவில்லை", "Case Title Not Available")}
                   </h3>
-                  <p className="text-[11px] text-purple-300 font-semibold mt-0.5">
+                  <p className="text-[11px] text-purple-900 font-semibold mt-0.5">
                     {[selectedCase.court, selectedCase.judge, selectedCase.year].filter(Boolean).join(" • ") || t("நீதிமன்ற விவரம் பெறப்படவில்லை", "Court Info Not Available")}
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <span className="text-xl font-black text-emerald-400">{selectedCase.similarityScore ?? 0}%</span>
-                  <span className="text-[9px] text-slate-400 block font-bold">{t("ஒற்றுமை மதிப்பெண்", "Similarity Score")}</span>
+                  <span className="text-xl font-extrabold text-emerald-700">{selectedCase.similarityScore ?? 0}%</span>
+                  <span className="text-[9px] text-slate-500 block font-bold">{t("ஒற்றுமை மதிப்பெண்", "Similarity Score")}</span>
                 </div>
               </div>
 
               {/* Factual Similarity */}
-              <div className="p-3 bg-slate-900/80 rounded-xl border border-slate-700/80">
-                <span className="text-[9px] font-black text-purple-300 uppercase tracking-wider block mb-1">
+              <div className="p-3.5 bg-white rounded-xl border border-slate-200">
+                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                   {t("நிகழ்வு ஒற்றுமை (Factual Similarity)", "Factual Similarity")}
                 </span>
-                <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                <p className="text-xs text-slate-800 leading-relaxed font-medium">
                   {selectedCase.factualSimilarity || selectedCase.whyItMatters || t("நிகழ்வு ஒற்றுமை விவரம் பெறப்படவில்லை", "Factual similarity details not available")}
                 </p>
               </div>
 
               {/* Key Legal Holdings */}
               <div>
-                <span className="text-[9px] font-black text-amber-300 uppercase tracking-wider block mb-2">
+                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-2">
                   {t("நீதிமன்றத்தின் முக்கிய சட்டத் தீர்ப்புரைகள் (Key Legal Holdings)", "Key Legal Holdings")}
                 </span>
-                <ul className="space-y-1.5 text-xs text-slate-200 font-medium">
+                <ul className="space-y-1.5 text-xs text-slate-800 font-medium">
                   {(Array.isArray(selectedCase.keyLegalHoldings) && selectedCase.keyLegalHoldings.length > 0) ? (
                     selectedCase.keyLegalHoldings.map((h, idx) => (
-                      <li key={idx} className="flex items-start gap-2 bg-slate-900/50 p-2 rounded-lg border border-slate-700/50">
-                        <Gavel className="h-3.5 w-3.5 text-purple-400 mt-0.5 shrink-0" />
+                      <li key={idx} className="flex items-start gap-2 bg-white p-2.5 rounded-lg border border-slate-200">
+                        <Gavel className="h-3.5 w-3.5 text-purple-700 mt-0.5 shrink-0" />
                         <span>{h}</span>
                       </li>
                     ))
                   ) : selectedCase.courtReasoningSummary ? (
-                    <li className="flex items-start gap-2 bg-slate-900/50 p-2 rounded-lg border border-slate-700/50">
-                      <Gavel className="h-3.5 w-3.5 text-purple-400 mt-0.5 shrink-0" />
+                    <li className="flex items-start gap-2 bg-white p-2.5 rounded-lg border border-slate-200">
+                      <Gavel className="h-3.5 w-3.5 text-purple-700 mt-0.5 shrink-0" />
                       <span>{selectedCase.courtReasoningSummary}</span>
                     </li>
                   ) : (
-                    <li className="text-slate-400 text-xs italic bg-slate-900/30 p-2 rounded-lg">
+                    <li className="text-slate-500 text-xs italic bg-white p-2.5 rounded-lg border border-slate-200">
                       {t("முக்கிய சட்டத் தீர்ப்புரைகள் கிடைக்கவில்லை", "Key legal holdings not available")}
                     </li>
                   )}
@@ -359,11 +360,11 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
               </div>
 
               {/* Strategic Value */}
-              <div className="p-3 bg-purple-950/50 border border-purple-800/80 rounded-xl">
-                <span className="text-[9px] font-black text-amber-300 uppercase tracking-wider block mb-1">
+              <div className="p-3.5 bg-purple-50/80 border border-purple-200 rounded-xl">
+                <span className="text-[9px] font-bold text-purple-900 uppercase tracking-wider block mb-1">
                   {t("இந்த வழக்கிற்கு இதன் பயன்பாடு (Strategic Value)", "Strategic Value for Current Case")}
                 </span>
-                <p className="text-xs text-purple-100 font-semibold leading-relaxed">
+                <p className="text-xs text-purple-950 font-medium leading-relaxed">
                   {selectedCase.strategicValue || selectedCase.whyItMatters || t("பயன்பாட்டு உத்தி விவரம் கிடைக்கவில்லை", "Strategic value not available")}
                 </p>
               </div>
@@ -375,21 +376,21 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
             
             {/* Government Orders */}
-            <div className="bg-slate-800/80 border border-slate-700 rounded-2xl p-5 space-y-3">
-              <h4 className="text-xs font-black text-amber-300 uppercase tracking-wider flex items-center gap-2 border-b border-slate-700 pb-2">
-                <Landmark className="h-4 w-4 text-amber-400" />
+            <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-3 shadow-xs">
+              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200 pb-2">
+                <Landmark className="h-4 w-4 text-purple-700" />
                 {t("அரசாணைகள் (Government Orders - G.O.s)", "Government Orders (G.O.s)")}
               </h4>
 
               <div className="space-y-2.5">
                 {govOrders.map((go: any, idx: number) => (
-                  <div key={idx} className="p-3 bg-slate-900/80 rounded-xl border border-slate-700 space-y-1">
+                  <div key={idx} className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-white">{go.orderNumber}</span>
-                      <span className="text-[9px] text-slate-400 font-mono">{go.date}</span>
+                      <span className="text-xs font-bold text-slate-900">{go.orderNumber}</span>
+                      <span className="text-[9px] text-slate-500 font-mono">{go.date}</span>
                     </div>
-                    <p className="text-[11px] text-slate-300 font-medium">{go.subject}</p>
-                    <p className="text-[10px] text-amber-200/90 font-semibold bg-amber-950/40 p-2 rounded border border-amber-900/50 mt-1">
+                    <p className="text-[11px] text-slate-700 font-medium">{go.subject}</p>
+                    <p className="text-[10px] text-purple-950 font-medium bg-purple-50/70 p-2 rounded border border-purple-200 mt-1">
                       <strong>{t("பயன்பாடு:", "Relevance:")}</strong> {go.relevance}
                     </p>
                   </div>
@@ -398,21 +399,21 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
             </div>
 
             {/* Circulars */}
-            <div className="bg-slate-800/80 border border-slate-700 rounded-2xl p-5 space-y-3">
-              <h4 className="text-xs font-black text-indigo-300 uppercase tracking-wider flex items-center gap-2 border-b border-slate-700 pb-2">
-                <FileText className="h-4 w-4 text-indigo-400" />
+            <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-3 shadow-xs">
+              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-200 pb-2">
+                <FileText className="h-4 w-4 text-purple-700" />
                 {t("சுற்றறிக்கைகள் (Official Circulars)", "Official Revenue & Land Circulars")}
               </h4>
 
               <div className="space-y-2.5">
                 {circs.map((circ: any, idx: number) => (
-                  <div key={idx} className="p-3 bg-slate-900/80 rounded-xl border border-slate-700 space-y-1">
+                  <div key={idx} className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-white">{circ.circularNumber}</span>
-                      <span className="text-[9px] text-slate-400 font-mono">{circ.date}</span>
+                      <span className="text-xs font-bold text-slate-900">{circ.circularNumber}</span>
+                      <span className="text-[9px] text-slate-500 font-mono">{circ.date}</span>
                     </div>
-                    <p className="text-[11px] text-slate-300 font-medium">{circ.subject}</p>
-                    <p className="text-[10px] text-indigo-200/90 font-semibold bg-indigo-950/40 p-2 rounded border border-indigo-900/50 mt-1">
+                    <p className="text-[11px] text-slate-700 font-medium">{circ.subject}</p>
+                    <p className="text-[10px] text-indigo-950 font-medium bg-indigo-50/70 p-2 rounded border border-indigo-200 mt-1">
                       <strong>{t("பயன்பாடு:", "Relevance:")}</strong> {circ.relevance}
                     </p>
                   </div>
@@ -430,27 +431,27 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
         <div className="space-y-6">
           
           {/* 12.1 Strongest Legal Route Card */}
-          <div className="bg-slate-800 border-2 border-purple-500 rounded-2xl p-6 shadow-md relative overflow-hidden">
+          <div className="bg-purple-50/40 border-2 border-purple-300 rounded-xl p-5 shadow-xs relative overflow-hidden">
             <div className="flex items-center gap-2 mb-2">
-              <span className="px-3 py-0.5 bg-purple-600 text-white text-[10px] font-black rounded-full uppercase tracking-widest">
+              <span className="px-2.5 py-0.5 bg-purple-800 text-white text-[9px] font-extrabold rounded uppercase tracking-wider">
                 12.1 {t("மிக வலுவான சட்ட வழிமுறை", "STRONGEST LEGAL ROUTE")}
               </span>
-              <span className="text-xs font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
+              <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                 {t("மிக உயர்ந்த வெற்றி வாய்ப்பு", "Highest Success Probability")}
               </span>
             </div>
 
-            <h3 className="text-xl font-black text-white leading-tight font-display mb-2">
+            <h3 className="text-base font-bold text-slate-900 leading-tight font-display mb-2">
               {stage12?.strongestLegalRoute?.routeName || t("மெட்ராஸ் உயர் நீதிமன்றத்தில் பேராணை மனு (Writ Petition under Article 226)", "Writ Petition under Article 226 in Madras High Court")}
             </h3>
 
-            <p className="text-xs text-slate-200 font-medium leading-relaxed mb-4 bg-purple-950/60 p-3 rounded-xl border border-purple-800">
+            <p className="text-xs text-slate-700 font-medium leading-relaxed mb-3 bg-white p-3 rounded-lg border border-purple-200">
               <strong>{t("ஏன் இந்த வழிமுறை?:", "Why this Route?:")}</strong> {stage12?.strongestLegalRoute?.justification || t("இயற்கை நீதி மீறல் மற்றும் தாலுகா அதிகாரியின் எல்லை மீறிய நடவடிக்கை தெளிவாக இருப்பதால், உயர் நீதிமன்றப் பேராணை மூலம் மிக விரைவான நிவாரணம் பெற முடியும்.", "Action passed in breach of natural justice without notice gives high probability of writ relief.")}
             </p>
 
-            <div className="flex items-center justify-between text-xs font-bold text-slate-300 border-t border-slate-700 pt-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-slate-600 border-t border-purple-200 pt-3">
               <span>{t("வகை:", "Route Type:")} {stage12?.strongestLegalRoute?.routeType || t("அரசியலமைப்பு பேராணை (Writ)", "Writ Jurisdiction")}</span>
-              <span className="text-purple-300">{t("எதிர்பார்க்கப்படும் கால அளவு:", "Estimated Resolution:")} {stage12?.strongestLegalRoute?.timeToResolutionEst || t("3 முதல் 6 மாதங்கள்", "3 to 6 Months")}</span>
+              <span className="text-purple-900 font-bold">{t("எதிர்பார்க்கப்படும் கால அளவு:", "Estimated Resolution:")} {stage12?.strongestLegalRoute?.timeToResolutionEst || t("3 முதல் 6 மாதங்கள்", "3 to 6 Months")}</span>
             </div>
           </div>
 
@@ -458,9 +459,9 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* 12.3 Evidence Gaps to Fill */}
-            <div className="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-sm space-y-4">
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-700 pb-3">
-                <XCircle className="h-4 w-4 text-rose-400" />
+            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
+              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-200 pb-3">
+                <XCircle className="h-4 w-4 text-rose-600" />
                 12.3 {t("நிரப்பப்பட வேண்டிய ஆதார இடைவெளிகள்", "Evidence Gaps to Fill")}
               </h4>
 
@@ -469,16 +470,16 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
                   { missingElement: t("முந்தைய தாய் பத்திரம் (Parent Document)", "Parent Title Document"), howToObtain: t("சார்பதிவாளர் அலுவலகத்தில் சான்றளிக்கப்பட்ட நகல் விண்ணப்பித்தல்", "Apply certified copy at SRO"), urgency: "High" },
                   { missingElement: t("கிராம ஏ-பதிவேடு சான்றளிக்கப்பட்ட நகல்", "A-Register Extract"), howToObtain: t("இ-சேவை மையம் அல்லது தாலுகா அலுவலகம் மூலம் பெறுதல்", "Apply at e-Sevai or Taluk Office"), urgency: "Medium" }
                 ]).map((eg, i) => (
-                  <div key={i} className="p-3 bg-slate-900/80 border border-slate-700 rounded-xl space-y-1">
+                  <div key={i} className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-white">{eg.missingElement}</span>
-                      <span className={`text-[9px] font-black px-2 py-0.5 rounded uppercase ${
-                        eg.urgency === "High" ? "bg-rose-950 text-rose-300 border border-rose-800" : "bg-amber-950 text-amber-300 border border-amber-800"
+                      <span className="text-xs font-bold text-slate-900">{eg.missingElement}</span>
+                      <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded uppercase ${
+                        eg.urgency === "High" ? "bg-rose-50 text-rose-800 border border-rose-200" : "bg-amber-50 text-amber-800 border border-amber-200"
                       }`}>
                         {eg.urgency} {t("அவசரம்", "Urgency")}
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-300 font-medium">
+                    <p className="text-[11px] text-slate-600 font-medium">
                       <strong>{t("பெறும் வழிமுறை:", "How to Obtain:")}</strong> {eg.howToObtain}
                     </p>
                   </div>
@@ -487,9 +488,9 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
             </div>
 
             {/* 12.4 Opposing Counterarguments & Rebuttal Strategies */}
-            <div className="bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-sm space-y-4">
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-700 pb-3">
-                <ShieldAlert className="h-4 w-4 text-amber-400" />
+            <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
+              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-200 pb-3">
+                <ShieldAlert className="h-4 w-4 text-amber-600" />
                 12.4 {t("எதிர்த்தரப்பின் சாத்தியமான வாதங்கள் & பதில் உத்தி", "Counterargument Simulator & Rebuttals")}
               </h4>
 
@@ -504,11 +505,11 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
                     rebuttalStrategy: t("பட்டா மாறுதல் உத்தரவு தங்களுக்குத் தெரியப்படுத்தப்படவில்லை என்பதை அஞ்சல் சான்றுகளுடன் நிரூபித்தல்.", "Demonstrate lack of notice with postal receipt logs.") 
                   }
                 ]).map((ca, i) => (
-                  <div key={i} className="p-3 bg-slate-900/80 border border-slate-700 rounded-xl space-y-1.5">
-                    <span className="text-[10px] font-bold text-rose-400 uppercase block">{t(`எதிர்த்தரப்பு வாதம் ${i + 1}`, `Opposing Argument ${i + 1}`)}:</span>
-                    <p className="text-xs font-bold text-white">"{ca.argument}"</p>
-                    <span className="text-[10px] font-bold text-emerald-400 uppercase block mt-1">{t("AI பதில் உத்தி (Rebuttal)", "AI Rebuttal Strategy")}:</span>
-                    <p className="text-xs text-slate-200 font-medium bg-slate-950 p-2 rounded border border-emerald-900">
+                  <div key={i} className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
+                    <span className="text-[10px] font-bold text-rose-700 uppercase block">{t(`எதிர்த்தரப்பு வாதம் ${i + 1}`, `Opposing Argument ${i + 1}`)}:</span>
+                    <p className="text-xs font-bold text-slate-900">"{ca.argument}"</p>
+                    <span className="text-[10px] font-bold text-emerald-700 uppercase block mt-1">{t("AI பதில் உத்தி (Rebuttal)", "AI Rebuttal Strategy")}:</span>
+                    <p className="text-xs text-slate-800 font-medium bg-emerald-50/60 p-2 rounded border border-emerald-200">
                       {ca.rebuttalStrategy}
                     </p>
                   </div>
@@ -522,9 +523,9 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
             {/* Additional Recommended Proof */}
-            <div className="lg:col-span-5 bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-sm space-y-4">
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-700 pb-3">
-                <CheckSquare className="h-4 w-4 text-purple-400" />
+            <div className="lg:col-span-5 bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
+              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-200 pb-3">
+                <CheckSquare className="h-4 w-4 text-purple-700" />
                 12.5 {t("கூடுதல் சாட்சியங்கள் & ஆவணப் பரிந்துரைகள்", "Additional Recommended Evidence")}
               </h4>
 
@@ -534,14 +535,14 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
                   { type: "Witness", title: t("கிராம நிர்வாக அலுவலர் (VAO) வாக்குமூலம்", "VAO Village Revenue Statement"), purpose: t("உண்மையான நில சுவாதீனத்தை உறுதிப்படுத்த", "Confirm actual physical possession") },
                   { type: "Technical Survey", title: t("FMB வரைபடம் & சர்வேயர் அளவீடு", "FMB Sketch & Land Survey Report"), purpose: t("நில எல்லைகளைத் துல்லியமாக வரையறுக்க", "Precisely demarcate survey boundaries") }
                 ]).map((ap, i) => (
-                  <div key={i} className="p-3 bg-slate-900/80 border border-slate-700 rounded-xl flex items-start gap-2.5">
-                    <div className="p-2 bg-purple-950 text-purple-300 border border-purple-800 rounded-lg shrink-0 text-xs font-bold">
+                  <div key={i} className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-start gap-2.5">
+                    <div className="p-1.5 bg-purple-100 text-purple-900 border border-purple-200 rounded-lg shrink-0 text-[11px] font-bold">
                       #{i + 1}
                     </div>
                     <div>
-                      <span className="text-xs font-black text-white block">{ap.title}</span>
-                      <span className="text-[10px] text-purple-300 font-bold block">{ap.type}</span>
-                      <p className="text-[11px] text-slate-300 mt-0.5 font-medium">{ap.purpose}</p>
+                      <span className="text-xs font-bold text-slate-900 block">{ap.title}</span>
+                      <span className="text-[10px] text-purple-800 font-semibold block">{ap.type}</span>
+                      <p className="text-[11px] text-slate-600 mt-0.5 font-medium">{ap.purpose}</p>
                     </div>
                   </div>
                 ))}
@@ -549,9 +550,9 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
             </div>
 
             {/* 12.6 Priority Next Actions Roadmap */}
-            <div className="lg:col-span-7 bg-slate-800/80 border border-slate-700 rounded-2xl p-6 shadow-sm space-y-4">
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-700 pb-3">
-                <ListOrdered className="h-4 w-4 text-purple-400" />
+            <div className="lg:col-span-7 bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
+              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-200 pb-3">
+                <ListOrdered className="h-4 w-4 text-purple-700" />
                 12.6 {t("அடுத்தடுத்த முதன்மை நடவடிக்கைகள்", "Priority Action Roadmap")}
               </h4>
 
@@ -561,18 +562,18 @@ export function PrecedentAndStrategyPanel({ caseData }: PrecedentAndStrategyPane
                   { stepNumber: 2, action: t("வருவாய் கோட்டாட்சியரிடம் (RDO) பட்டா மாறுதலுக்கு எதிரான ஆட்சேபனை மேல்முறையீடு", "File RDO Patta objection appeal"), targetAuthority: t("வருவாய் கோட்டாட்சியர் (RDO)", "RDO Revenue Officer"), timeline: t("7 நாட்களுக்குள்", "Within 7 days") },
                   { stepNumber: 3, action: t("மெட்ராஸ் உயர் நீதிமன்றத்தில் நல்வழி ஆணை (Writ of Mandamus) மனு தாக்கல் செய்தல்", "File Writ of Mandamus in High Court"), targetAuthority: t("மெட்ராஸ் உயர் நீதிமன்றம்", "Madras High Court"), timeline: t("30 நாட்களுக்குள்", "Within 30 days") }
                 ]).map((pa, i) => (
-                  <div key={i} className="p-3.5 bg-slate-900/80 border border-slate-700 rounded-xl flex items-start gap-3">
-                    <div className="w-7 h-7 rounded-full bg-purple-700 text-white font-black text-xs flex items-center justify-center shrink-0 border border-purple-800">
+                  <div key={i} className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-purple-800 text-white font-extrabold text-[11px] flex items-center justify-center shrink-0">
                       {pa.stepNumber || i + 1}
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-extrabold text-white">{pa.action}</span>
-                        <span className="text-[9px] font-extrabold text-purple-200 bg-purple-950 border border-purple-800 px-2 py-0.5 rounded">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center justify-between gap-1 mb-1">
+                        <span className="text-xs font-bold text-slate-900">{pa.action}</span>
+                        <span className="text-[9px] font-bold text-purple-900 bg-purple-100 border border-purple-200 px-2 py-0.5 rounded">
                           {pa.timeline}
                         </span>
                       </div>
-                      <span className="text-[10px] text-slate-400 font-semibold block">
+                      <span className="text-[10px] text-slate-500 font-semibold block">
                         {t("அணுக வேண்டிய அதிகாரி", "Target Authority")}: {pa.targetAuthority}
                       </span>
                     </div>

@@ -158,12 +158,13 @@ export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPan
       
       {/* Left Column: Interactive drafting viewer/editor (8 cols) */}
       <div className="lg:col-span-8 flex flex-col h-full space-y-4 print:w-full print:border-none print:shadow-none">
-        <div className="bg-white rounded-2xl border border-slate-250 shadow-xs flex flex-col h-[520px] overflow-hidden print:h-auto print:border-none print:shadow-none print:overflow-visible">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-xs flex flex-col h-[520px] overflow-hidden print:h-auto print:border-none print:shadow-none print:overflow-visible">
           
           {/* Draft header */}
           <div className="bg-slate-50 px-5 py-3 border-b border-slate-200 flex items-center justify-between print:bg-white print:border-b-2 print:border-slate-800 print:px-0">
             <div className="flex items-center gap-2">
-              <FileText className="h-4.5 w-4.5 text-indigo-600 print:hidden no-print" />
+              <span className="w-1.5 h-3.5 bg-purple-700 rounded mr-1"></span>
+              <FileText className="h-4 w-4 text-purple-700 print:hidden no-print" />
               <input 
                 type="text" 
                 value={draftTitle} 
@@ -171,7 +172,7 @@ export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPan
                   setDraftTitle(e.target.value);
                 }}
                 onBlur={handleTitleBlur}
-                className="font-bold text-slate-800 text-xs bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-indigo-200 rounded px-1.5 py-0.5 w-[280px] md:w-[420px] font-display print:text-lg print:text-slate-900 print:w-full"
+                className="font-bold text-slate-900 text-xs bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-purple-200 rounded px-1.5 py-0.5 w-[280px] md:w-[420px] font-display print:text-lg print:text-slate-900 print:w-full"
               />
             </div>
 
@@ -180,18 +181,18 @@ export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPan
                 type="button"
                 onClick={handleDownloadPDF}
                 disabled={isDownloadingPDF}
-                className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-3xs disabled:opacity-50"
+                className="btn-primary-purple !py-1.5 !px-3 !text-[11px] disabled:opacity-50"
                 title="AO வரைவை PDF கோப்பாக பதிவிறக்கவும் (Download Draft as PDF)"
               >
                 {isDownloadingPDF ? (
                   <>
                     <RefreshCw className="animate-spin h-3.5 w-3.5 text-white" />
-                    <span className="text-[11px] font-extrabold">{t("PDF உருவாகிறது...", "Generating PDF...")}</span>
+                    <span className="font-bold">{t("PDF உருவாகிறது...", "Generating PDF...")}</span>
                   </>
                 ) : (
                   <>
                     <Download className="h-3.5 w-3.5 text-white" />
-                    <span className="text-[11px] font-extrabold">{t("PDF பதிவிறக்கம்", "Download PDF")}</span>
+                    <span className="font-bold">{t("PDF பதிவிறக்கம்", "Download PDF")}</span>
                   </>
                 )}
               </button>
@@ -199,17 +200,17 @@ export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPan
               <button
                 type="button"
                 onClick={handleCopy}
-                className="px-3.5 py-1.5 rounded-xl bg-white border border-slate-250 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-300 transition flex items-center gap-1 cursor-pointer shadow-3xs"
+                className="btn-secondary-white !py-1.5 !px-3 !text-[11px]"
               >
                 {copied ? (
                   <>
                     <Check className="h-3.5 w-3.5 text-emerald-600" />
-                    <span className="text-[11px] text-emerald-700">{t("நகலெடுக்கப்பட்டது!", "Copied!")}</span>
+                    <span className="text-emerald-700 font-bold">{t("நகலெடுக்கப்பட்டது!", "Copied!")}</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="h-3.5 w-3.5 text-slate-400" />
-                    <span className="text-[11px]">{t("நகலெடு", "Copy Text")}</span>
+                    <Copy className="h-3.5 w-3.5 text-slate-500" />
+                    <span>{t("நகலெடு", "Copy Text")}</span>
                   </>
                 )}
               </button>
@@ -220,8 +221,8 @@ export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPan
           <div className="flex-1 p-5 relative bg-slate-50/50 print:bg-white print:p-0">
             {isRefining && (
               <div className="absolute inset-0 bg-white/85 backdrop-blur-xs flex flex-col items-center justify-center gap-3 z-10 print:hidden no-print">
-                <RefreshCw className="animate-spin h-8 w-8 text-indigo-600" />
-                <span className="text-xs font-bold text-slate-600">சட்ட அளவுருக்களுடன் மீண்டும் வரைவு செய்யப்படுகிறது...</span>
+                <RefreshCw className="animate-spin h-8 w-8 text-purple-700" />
+                <span className="text-xs font-bold text-slate-700">சட்ட அளவுருக்களுடன் மீண்டும் வரைவு செய்யப்படுகிறது...</span>
               </div>
             )}
             <textarea
@@ -230,7 +231,7 @@ export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPan
                 setDraftContent(e.target.value);
               }}
               onBlur={handleContentBlur}
-              className="w-full h-[360px] font-mono text-[11px] text-slate-700 p-4 bg-white border border-slate-200 rounded-xl leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition shadow-3xs print:hidden"
+              className="w-full h-[360px] font-mono text-[11px] text-slate-800 p-4 bg-white border border-slate-200 rounded-xl leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-600 transition shadow-3xs print:hidden"
               placeholder="வழக்கு மதிப்பீடு வரைவு இங்கே தோன்றும்..."
             />
 
@@ -272,18 +273,18 @@ export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPan
       <div className="lg:col-span-4 space-y-6 print:hidden no-print">
         
         {/* AI Prompt Refiner Box */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-250 shadow-xs space-y-4 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-2 h-full bg-indigo-600" />
+        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-4">
           
-          <div className="flex items-center gap-2 pb-3 border-b border-slate-100 pl-2">
-            <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+          <div className="flex items-center gap-2 pb-3 border-b border-slate-200">
+            <span className="w-1.5 h-3.5 bg-purple-700 rounded mr-1"></span>
+            <div className="p-1.5 bg-purple-50 text-purple-800 rounded-lg">
               <Sparkles className="h-4 w-4" />
             </div>
-            <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest font-display">மனுவை மேம்படுத்தும் AI</h3>
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-display">மனுவை மேம்படுத்தும் AI</h3>
           </div>
 
-          <div className="pl-2 space-y-4">
-            <p className="text-[11px] text-slate-400 leading-normal font-medium">
+          <div className="space-y-4">
+            <p className="text-xs text-slate-500 leading-normal font-medium">
               சட்டப்பிரிவுகளைச் சேர்க்க, தொனியை மாற்ற அல்லது வாடிக்கையாளரின் குறிப்பிட்ட நிபந்தனைகளைச் சேர்க்க எளிய தமிழில் கட்டளைகளை வழங்கவும். ஜெமினி உடனடியாக முழு வரைவையும் மாற்றி எழுதும்.
             </p>
 
@@ -293,7 +294,7 @@ export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPan
                 onChange={(e) => setInstructions(e.target.value)}
                 rows={4}
                 placeholder="எ.கா: 'எதிர்த்தரப்பினர் போலியாகப் பதிவு செய்தால் குற்றவியல் நடவடிக்கை எடுக்கப்படும் என எச்சரிக்கும் பத்தியைச் சேர்க்கவும்.'"
-                className="w-full p-3 text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition"
+                className="w-full p-3 text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-purple-100 focus:border-purple-600 transition"
               />
               {errorMessage && (
                 <p className="text-xs text-rose-600 font-bold">{errorMessage}</p>
@@ -301,7 +302,7 @@ export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPan
               <button
                 type="submit"
                 disabled={isRefining || !instructions.trim()}
-                className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-xs hover:shadow-sm disabled:bg-slate-200 disabled:text-slate-400 flex items-center justify-center gap-1.5 transition cursor-pointer"
+                className="btn-primary-purple w-full !py-2.5 text-xs flex items-center justify-center gap-1.5"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${isRefining ? 'animate-spin' : ''}`} />
                 <span>மனுவின் வரைவை மேம்படுத்து</span>
@@ -311,20 +312,23 @@ export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPan
         </div>
 
         {/* Guidance Reference Panel */}
-        <div className="bg-slate-100 p-5 rounded-2xl border border-slate-250 space-y-3.5">
-          <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest font-display">பயனுள்ள சட்டப்பிரிவுகள் (ஆலோசனைகள்):</h4>
+        <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 space-y-3.5">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-3.5 bg-purple-700 rounded mr-1"></span>
+            <h4 className="text-[10px] font-bold text-slate-600 uppercase tracking-wider font-display">பயனுள்ள சட்டப்பிரிவுகள் (ஆலோசனைகள்):</h4>
+          </div>
           
-          <div className="space-y-2.5 text-[11px] text-slate-600">
+          <div className="space-y-2.5 text-xs text-slate-700">
             <div className="flex items-start gap-1.5">
-              <ChevronRight className="h-4 w-4 text-indigo-600 shrink-0 mt-0.5" />
+              <ChevronRight className="h-4 w-4 text-purple-700 shrink-0 mt-0.5" />
               <span className="font-medium"><strong>பிரிவு 77A (பத்திரப்பதிவு சட்டம்):</strong> போலி ஆவணங்களை ரத்து செய்ய பதிவாளர்களுக்கு அதிகாரம் அளித்தல்.</span>
             </div>
             <div className="flex items-start gap-1.5">
-              <ChevronRight className="h-4 w-4 text-indigo-600 shrink-0 mt-0.5" />
+              <ChevronRight className="h-4 w-4 text-purple-700 shrink-0 mt-0.5" />
               <span className="font-medium"><strong>UDR சர்வே பிழை திருத்தம்:</strong> வருவாய் கோட்டாட்சியரை (RDO) நேரடியாக அணுகலாம்.</span>
             </div>
             <div className="flex items-start gap-1.5">
-              <ChevronRight className="h-4 w-4 text-indigo-600 shrink-0 mt-0.5" />
+              <ChevronRight className="h-4 w-4 text-purple-700 shrink-0 mt-0.5" />
               <span className="font-medium"><strong>வழக்கு சட்டம் பிரிவு 34 (Specific Relief Act):</strong> சொத்துரிமையை நிலைநாட்ட உரிமையியல் நீதிமன்றத்தில் பிரகடன வழக்கு.</span>
             </div>
           </div>

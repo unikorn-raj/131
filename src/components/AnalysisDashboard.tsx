@@ -141,15 +141,15 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
     <div className="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)] xl:grid-cols-[220px_minmax(0,1fr)_300px] min-[1440px]:grid-cols-[240px_minmax(0,1fr)_320px] gap-6 items-start text-slate-900 w-full min-w-0">
       
       {/* 1. Left Sidebar: Stage Navigation (Analysis Framework) */}
-      <nav className="w-full bg-white border border-slate-200 rounded-2xl flex flex-col p-4 shadow-sm sticky top-20 z-10 print:hidden no-print lg:col-span-1">
-        <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-200">
-          <Scale className="h-4 w-4 text-purple-700" />
-          <h2 className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">
+      <nav className="w-full bg-white border border-slate-200 rounded-xl flex flex-col p-3.5 shadow-xs sticky top-20 z-10 print:hidden no-print lg:col-span-1">
+        <div className="flex items-center gap-2 mb-2.5 pb-2 border-b border-slate-200">
+          <Scale className="h-3.5 w-3.5 text-purple-800" />
+          <h2 className="text-[10px] font-extrabold text-slate-700 uppercase tracking-widest">
             {t("மதிப்பீட்டுக் கட்டமைப்பு", "Assessment Framework")}
           </h2>
         </div>
         
-        <div className="space-y-1 max-h-[350px] lg:max-h-none overflow-y-auto pr-1">
+        <div className="space-y-0.5 max-h-[350px] lg:max-h-none overflow-y-auto pr-1">
           {[
             { num: "00", name: t("வழக்கு அடையாளங்கள்", "Case Profile & Intake"), id: "stage-00" },
             { num: "01", name: t("வழக்கின் பிரிவு", "Dispute Classification"), id: "stage-01" },
@@ -171,18 +171,18 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
                 key={stg.num}
                 type="button"
                 onClick={() => scrollToSection(stg.id, i)}
-                className={`w-full flex items-center px-3 py-2 text-xs font-semibold rounded-lg transition duration-150 cursor-pointer text-left ${
+                className={`w-full flex items-center px-2.5 py-1.5 text-xs font-semibold rounded-lg transition duration-150 cursor-pointer text-left ${
                   isHighlighted 
-                    ? "text-purple-900 bg-purple-100 border border-purple-300 font-bold" 
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-transparent"
+                    ? "text-purple-900 bg-purple-50 border border-purple-200 font-bold" 
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent"
                 }`}
               >
-                <span className={`w-5 h-5 flex items-center justify-center rounded mr-2.5 text-[9px] font-bold ${
-                  isHighlighted ? "bg-purple-700 text-white font-black" : "border border-slate-300 text-slate-600 bg-slate-50"
+                <span className={`w-4.5 h-4.5 flex items-center justify-center rounded mr-2 text-[9px] font-bold shrink-0 ${
+                  isHighlighted ? "bg-purple-800 text-white font-extrabold" : "border border-slate-200 text-slate-500 bg-slate-50"
                 }`}>
                   {stg.num}
                 </span>
-                <span className="truncate">{stg.name}</span>
+                <span className="truncate text-[11px]">{stg.name}</span>
               </button>
             );
           })}
@@ -197,9 +197,9 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
           const storedLanguageMode = caseData?.languageMode || "ta";
           if (!caseData || storedLanguageMode === langMode) return null;
           return (
-            <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-amber-900 shadow-sm">
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-amber-900 shadow-xs">
               <div className="flex items-center gap-2">
-                <Globe className="h-5 w-5 text-amber-600 shrink-0 animate-pulse" />
+                <Globe className="h-5 w-5 text-amber-600 shrink-0" />
                 <div>
                   <p className="text-xs font-bold">
                     {t(
@@ -219,7 +219,7 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
                 type="button"
                 onClick={handleTranslateCase}
                 disabled={isTranslating}
-                className="px-3.5 py-1.5 bg-amber-600 text-white rounded-xl text-xs font-extrabold hover:bg-amber-700 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0"
+                className="px-3.5 py-1.5 bg-amber-700 text-white rounded-xl text-xs font-bold hover:bg-amber-800 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0 shadow-xs"
               >
                 <Sparkles className="h-3.5 w-3.5" />
                 {isTranslating
@@ -236,31 +236,31 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
         )}
 
         {/* Case Header Card */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm relative overflow-hidden min-w-0">
-          <div className="pl-1 flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
+        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs relative overflow-hidden min-w-0">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0">
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap gap-2 items-center mb-1.5">
-                <span className="text-[10px] font-extrabold text-purple-900 uppercase tracking-wider bg-purple-100 border border-purple-200 px-2.5 py-0.5 rounded flex flex-wrap items-center gap-1 max-w-full">
+                <span className="badge-ai-intel">
                   <span>AIEOS</span>
-                  <ChevronRight className="h-2.5 w-2.5 text-purple-500 shrink-0" />
+                  <ChevronRight className="h-2.5 w-2.5 text-purple-400 shrink-0" />
                   <span>Citizen360</span>
-                  <ChevronRight className="h-2.5 w-2.5 text-purple-500 shrink-0" />
+                  <ChevronRight className="h-2.5 w-2.5 text-purple-400 shrink-0" />
                   <span>{caseData.subWorkspace || caseData.stage0?.subWorkspace || "Property360"}</span>
-                  <ChevronRight className="h-2.5 w-2.5 text-purple-500 shrink-0" />
+                  <ChevronRight className="h-2.5 w-2.5 text-purple-400 shrink-0" />
                   <span>{caseData.module || caseData.stage0?.module || "Engine"}</span>
                 </span>
-                <span className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded break-words">
+                <span className="badge-neutral-status">
                   {t("வழக்கு ID", "Case ID")}: UK360-{(caseData.stage0?.district || "TN").toUpperCase().slice(0,3)}-{caseData.id?.slice(-4) || "0000"}
                 </span>
                 <span className="text-xs font-bold text-slate-600 break-words [overflow-wrap:anywhere]">
                   {t("சர்வே எண்", "Survey No")} #{caseData.stage0?.surveyNumber} • {caseData.stage0?.village}, {caseData.stage0?.district}
                 </span>
               </div>
-              <h3 className="text-xl font-black text-slate-900 tracking-tight leading-snug font-display break-words [overflow-wrap:anywhere] [word-break:normal]">
+              <h3 className="text-lg font-bold text-slate-900 tracking-tight leading-snug font-display break-words [overflow-wrap:anywhere] [word-break:normal]">
                 {caseData.stage0?.clientName} {t("அவர்களின் வழக்கு மேலாண்மை", "Case Management File")}
               </h3>
-              <p className="text-xs text-slate-600 mt-1.5 font-medium flex flex-wrap items-center gap-1 break-words">
-                <Landmark className="h-3.5 w-3.5 text-purple-700 shrink-0" />
+              <p className="text-xs text-slate-600 mt-1 font-medium flex flex-wrap items-center gap-1.5 break-words">
+                <Landmark className="h-3.5 w-3.5 text-purple-800 shrink-0" />
                 <span>{t("வட்டம் (தாலுகா)", "Taluk")}: {caseData.stage0?.taluk || "N/A"} | {t("எதிர் தரப்பினர்", "Opposite Party")}: {caseData.stage0?.oppositeParty || "N/A"}</span>
               </p>
             </div>
@@ -269,21 +269,21 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
               <button
                 type="button"
                 onClick={() => setIsUpdateModalOpen(true)}
-                className="px-4 py-2.5 bg-purple-900 text-white rounded-xl text-xs font-black hover:bg-purple-800 transition flex items-center gap-2 cursor-pointer shadow-md"
+                className="btn-primary-purple"
               >
-                <PlusCircle className="h-4 w-4 text-purple-300" />
+                <PlusCircle className="h-4 w-4" />
                 <span>{t("➕ வழக்கு அப்டேட்", "➕ Update Case")}</span>
               </button>
 
-              <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 self-start md:self-auto min-w-[140px]">
+              <div className="flex items-center gap-3 bg-slate-50 p-2.5 rounded-xl border border-slate-200 self-start md:self-auto min-w-[130px]">
                 <div className="text-left flex-1">
-                  <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">
+                  <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">
                     {t("அச்சுறுத்தல் நிலை", "Threat Level")}
                   </span>
                   <span className="text-xs font-extrabold text-rose-700 block leading-tight">{caseData.stage9?.rating || "HIGH RISK"}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-2xl font-black text-slate-900 leading-none">{caseData.stage9?.score || 45}</span>
+                  <span className="text-xl font-black text-slate-900 leading-none">{caseData.stage9?.score || 45}</span>
                   <span className="text-[9px] text-slate-500 font-bold block">/100</span>
                 </div>
               </div>
@@ -292,9 +292,9 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
         </div>
 
         {/* Stage 00 Card: Intake Identifiers */}
-        <div id="stage-00" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 relative min-w-0">
+        <div id="stage-00" className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4 relative min-w-0">
           <div className="flex flex-wrap items-center gap-2 pb-3 border-b border-slate-200">
-            <span className="w-1.5 h-3 bg-purple-700 rounded mr-1"></span>
+            <span className="w-1.5 h-3.5 bg-purple-700 rounded mr-1"></span>
             <span className="text-[10px] font-bold text-slate-500 uppercase">{t("நிலை 00", "Stage 00")}</span>
             <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
               {t("வாடிக்கையாளர் வழக்கு அடையாளங்கள்", "Client & Case Profile Identifiers")}
@@ -346,9 +346,9 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
         </div>
 
         {/* Stage 01 & 02 Card: Category & Root Cause */}
-        <div id="stage-01" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 min-w-0">
+        <div id="stage-01" className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4 min-w-0">
           <div id="stage-02" className="flex items-center gap-2 pb-3 border-b border-slate-200">
-            <span className="w-1.5 h-3 bg-purple-700 rounded mr-1"></span>
+            <span className="w-1.5 h-3.5 bg-purple-700 rounded mr-1"></span>
             <span className="text-[10px] font-bold text-slate-500 uppercase">{t("நிலை 01 & 02", "Stage 01 & 02")}</span>
             <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
               {t("உள் பகுப்பாய்வு & கண்டறிதல்", "Internal Classification & Root Cause Statement")}
@@ -360,14 +360,14 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
               <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                 {t("மூலப் பிரச்சனையின் அறிக்கை", "Root Cause Statement")}
               </label>
-              <p className="text-sm text-purple-950 italic border-l-3 border-purple-700 pl-3 py-2 font-medium bg-purple-50 rounded-r-lg">
+              <p className="text-xs text-slate-900 italic border-l-3 border-purple-700 pl-3 py-2 font-medium bg-purple-50/50 rounded-r-lg">
                 "{caseData.stage2?.rootCauseStatement || t("பரஸ்பர ஒப்புதல் இன்றி பிரிக்கப்படாத சொத்துக்கு சர்ச்சை ஆவணம் செயல்படுத்தப்பட்டது.", "Disputed transaction executed without mutual consent on undivided ancestral property.")}"
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-1">
+                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                   {t("வாடிக்கையாளர் கூறுவது", "Core Dispute Real Issue")}
                 </span>
                 <p className="text-xs text-slate-800 leading-relaxed font-medium">
@@ -375,7 +375,7 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
                 </p>
               </div>
               <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 group relative">
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block mb-1">
+                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                   {t("முதன்மையான பிரிவு", "Primary Legal Category")}
                 </span>
                 {isEditingCategory ? (
@@ -383,7 +383,7 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
                     <select
                       value={tempCategory}
                       onChange={(e) => setTempCategory(e.target.value)}
-                      className="w-full text-xs font-semibold bg-white text-slate-900 border border-slate-300 rounded p-1.5 cursor-pointer focus:ring-1 focus:ring-purple-600"
+                      className="w-full text-xs font-semibold bg-white text-slate-900 border border-slate-300 rounded p-1.5 cursor-pointer focus:ring-1 focus:ring-purple-700"
                     >
                       <option value="Revenue" className="bg-white text-slate-900">வருவாய்த் துறை (Revenue)</option>
                       <option value="Registration" className="bg-white text-slate-900">பத்திரப்பதிவுத் துறை (Registration)</option>
@@ -397,7 +397,7 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
                       value={tempSpecificType}
                       onChange={(e) => setTempSpecificType(e.target.value)}
                       placeholder={t("குறிப்பிட்ட தகராறு வகை", "Specific dispute type")}
-                      className="w-full text-xs font-semibold bg-white text-slate-900 border border-slate-300 rounded p-1.5 focus:ring-1 focus:ring-purple-600"
+                      className="w-full text-xs font-semibold bg-white text-slate-900 border border-slate-300 rounded p-1.5 focus:ring-1 focus:ring-purple-700"
                     />
                     <div className="flex gap-1 justify-end">
                       <button
@@ -407,14 +407,14 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
                           setTempSpecificType(caseData.stage1?.specificType || "");
                           setIsEditingCategory(false);
                         }}
-                        className="px-2.5 py-1 text-[10px] bg-slate-200 text-slate-700 rounded hover:bg-slate-300 font-bold cursor-pointer"
+                        className="btn-ghost-action"
                       >
                         {t("ரத்துசெய்", "Cancel")}
                       </button>
                       <button
                         type="button"
                         onClick={handleSaveCategory}
-                        className="px-2.5 py-1 text-[10px] bg-purple-700 text-white rounded hover:bg-purple-800 font-bold cursor-pointer"
+                        className="btn-primary-purple !py-1 !px-3 !text-[10px]"
                       >
                         {t("சேமி", "Save")}
                       </button>
@@ -423,10 +423,10 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
                 ) : (
                   <div className="flex items-center justify-between gap-2 mt-1">
                     <div className="flex items-center gap-2">
-                      <span className={`text-xs font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${getCategoryColor(caseData.stage1?.category)}`}>
+                      <span className={`text-xs font-bold uppercase px-2.5 py-0.5 rounded border ${getCategoryColor(caseData.stage1?.category)}`}>
                         {caseData.stage1?.category}
                       </span>
-                      <span className="text-xs font-bold text-slate-800">{caseData.stage1?.specificType}</span>
+                      <span className="text-xs font-semibold text-slate-800">{caseData.stage1?.specificType}</span>
                     </div>
                     <button
                       type="button"
@@ -435,7 +435,7 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
                         setTempSpecificType(caseData.stage1?.specificType || "");
                         setIsEditingCategory(true);
                       }}
-                      className="px-2 py-0.5 text-[10px] text-purple-700 hover:bg-purple-100 rounded border border-transparent hover:border-purple-300 transition cursor-pointer font-bold shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                      className="btn-ghost-action !py-0.5 !px-2 !text-[10px] opacity-0 group-hover:opacity-100 focus:opacity-100"
                     >
                       {t("மாற்று", "Edit")}
                     </button>
@@ -447,10 +447,10 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
         </div>
 
         {/* Stage 03, 04, 05 Card: Subject/Property, Cause of Action & Rights Matrix */}
-        <div id="stage-03" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 min-w-0">
+        <div id="stage-03" className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4 min-w-0">
           <div id="stage-04" className="flex items-center justify-between pb-3 border-b border-slate-200">
             <div className="flex items-center gap-2">
-              <span id="stage-05" className="w-1.5 h-3 bg-purple-700 rounded mr-1"></span>
+              <span id="stage-05" className="w-1.5 h-3.5 bg-purple-700 rounded mr-1"></span>
               <span className="text-[10px] font-bold text-slate-500 uppercase">{t("நிலை 03, 04 & 05", "Stage 03, 04 & 05")}</span>
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                 {t("வழக்கின் பொருள், வழக்கின் காரணம் (Cause of Action) & உரிமைகள் அணிவரிசை (Rights Matrix)", "Dispute Subject, Cause of Action & Rights Matrix")}
@@ -467,7 +467,7 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
                 {typeof caseData.stage3 === "object" ? caseData.stage3?.subjectType : (caseData.stage3 || t("பூர்வீக சொத்து / சட்டப்பொருள்", "Ancestral Property / Legal Subject"))}
               </span>
               {typeof caseData.stage3 === "object" && caseData.stage3?.partyRelationshipMap && (
-                <span className="block text-[10px] text-purple-800 font-semibold mt-1 break-words [overflow-wrap:anywhere]">
+                <span className="block text-[10px] text-purple-900 font-semibold mt-1 break-words [overflow-wrap:anywhere]">
                   {t("உறவுமுறை", "Party Map")}: {caseData.stage3.partyRelationshipMap}
                 </span>
               )}
@@ -480,13 +480,13 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
               {typeof caseData.stage4 === "object" && Array.isArray(caseData.stage4?.timelineEvents) ? (
                 <div className="text-left space-y-1">
                   {caseData.stage4.timelineEvents.slice(0, 3).map((evt, idx) => (
-                    <span key={idx} className="block text-[10px] font-semibold text-purple-900 break-words [overflow-wrap:anywhere] [word-break:normal]">
+                    <span key={idx} className="block text-[10px] font-medium text-slate-800 break-words [overflow-wrap:anywhere] [word-break:normal]">
                       • {evt}
                     </span>
                   ))}
                 </div>
               ) : (
-                <span className="text-xs font-bold text-purple-900 block break-words [overflow-wrap:anywhere]">{String(caseData.stage4 || t("தகராறு நிகழ்வு", "Dispute Event"))}</span>
+                <span className="text-xs font-bold text-slate-900 block break-words [overflow-wrap:anywhere]">{String(caseData.stage4 || t("தகராறு நிகழ்வு", "Dispute Event"))}</span>
               )}
             </div>
 
@@ -515,10 +515,10 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
         </div>
 
         {/* Stage 06 Card: Interactive Evidence Matrix */}
-        <div id="stage-06" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 min-w-0">
+        <div id="stage-06" className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4 min-w-0">
           <div className="flex items-center justify-between pb-3 border-b border-slate-200">
             <div className="flex items-center gap-2">
-              <span className="w-1.5 h-3 bg-purple-700 rounded mr-1"></span>
+              <span className="w-1.5 h-3.5 bg-purple-700 rounded mr-1"></span>
               <span className="text-[10px] font-bold text-slate-500 uppercase">{t("நிலை 06", "Stage 06")}</span>
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                 {t("ஆவணங்கள் வரைபடம் (ஊடாடும் சரிபார்ப்பு பட்டியல்)", "Document & Evidence Mapping Matrix")}
@@ -526,7 +526,7 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
             </div>
           </div>
 
-          <p className="text-xs text-slate-600 font-medium">
+          <p className="text-xs text-slate-500 font-medium">
             {t(
               "ஆவணங்களை தேர்வு செய்யவும் அல்லது நீக்கவும். சிவப்பு நிறத்தில் உள்ளவை இல்லாத ஆவணங்களைக் குறிக்கின்றன.",
               "Check or uncheck documents. Red items indicate missing evidence that must be gathered."
@@ -536,7 +536,7 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Available Documents */}
             <div className="min-w-0">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2">
+              <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block mb-2">
                 {t("தளத்தில் உள்ள ஆவணங்கள்", "Available Documents")} ({availableDocs.length})
               </span>
               {availableDocs.length === 0 ? (
@@ -548,13 +548,13 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
                   {availableDocs.map((doc, idx) => (
                     <label 
                       key={idx} 
-                      className="flex items-start gap-2.5 p-2 bg-emerald-50 border border-emerald-200 rounded-lg cursor-pointer hover:bg-emerald-100 transition text-xs font-medium text-emerald-900 min-w-0"
+                      className="flex items-start gap-2.5 p-2 bg-emerald-50/70 border border-emerald-200 rounded-lg cursor-pointer hover:bg-emerald-100/70 transition text-xs font-medium text-emerald-900 min-w-0"
                     >
                       <input 
                         type="checkbox" 
                         checked={true}
                         onChange={() => handleToggleDoc(doc, true)}
-                        className="mt-0.5 h-3.5 w-3.5 text-emerald-600 border-slate-300 rounded-sm cursor-pointer accent-emerald-600 shrink-0"
+                        className="mt-0.5 h-3.5 w-3.5 text-emerald-600 border-slate-300 rounded cursor-pointer accent-emerald-600 shrink-0"
                       />
                       <span className="break-words [overflow-wrap:anywhere] [word-break:normal] flex-1 min-w-0">{doc}</span>
                     </label>
@@ -577,13 +577,13 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
                   {missingDocs.map((doc, idx) => (
                     <label 
                       key={idx} 
-                      className="flex items-start gap-2.5 p-2 bg-rose-50 border border-rose-200 rounded-lg cursor-pointer hover:bg-rose-100 transition text-xs font-medium text-slate-700 min-w-0"
+                      className="flex items-start gap-2.5 p-2 bg-rose-50/70 border border-rose-200 rounded-lg cursor-pointer hover:bg-rose-100/70 transition text-xs font-medium text-slate-700 min-w-0"
                     >
                       <input 
                         type="checkbox" 
                         checked={false}
                         onChange={() => handleToggleDoc(doc, false)}
-                        className="mt-0.5 h-3.5 w-3.5 text-rose-600 border-slate-300 rounded-sm cursor-pointer shrink-0"
+                        className="mt-0.5 h-3.5 w-3.5 text-rose-600 border-slate-300 rounded cursor-pointer shrink-0"
                       />
                       <span className="line-through text-slate-400 break-words [overflow-wrap:anywhere] [word-break:normal] flex-1 min-w-0">{doc}</span>
                     </label>
@@ -595,16 +595,16 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
         </div>
 
         {/* Stage 07 Card: Authority Route Steps */}
-        <div id="stage-07" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 min-w-0">
+        <div id="stage-07" className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4 min-w-0">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-200">
-            <span className="w-1.5 h-3 bg-purple-700 rounded mr-1"></span>
+            <span className="w-1.5 h-3.5 bg-purple-700 rounded mr-1"></span>
             <span className="text-[10px] font-bold text-slate-500 uppercase">{t("நிலை 07", "Stage 07")}</span>
             <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
               {t("வருவாய் மற்றும் பதிவு அதிகாரி வழிப்பாதை", "Jurisdictional Authority & Appeal Hierarchy")}
             </h4>
           </div>
 
-          <p className="text-xs text-slate-600 font-medium">
+          <p className="text-xs text-slate-500 font-medium">
             {t(
               "தமிழ்நாடு நில வருவாய் விதிகளின்படி வழக்குகளின் தீர்வுக்காக அணுக வேண்டிய வரிசையான அரசு அலுவலகப் பாதை.",
               "Sequential hierarchy of Tamil Nadu revenue and registration authorities to approach for relief."
@@ -613,12 +613,12 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 pt-2 w-full min-w-0">
             {authoritySteps.map((step, idx) => (
-              <div key={idx} className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-3 rounded-xl hover:border-purple-400 transition min-w-0 max-w-full w-full">
-                <div className="w-6 h-6 rounded-full bg-purple-100 text-purple-900 border border-purple-300 font-extrabold text-[10px] flex items-center justify-center shrink-0">
+              <div key={idx} className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-3 rounded-xl hover:border-purple-300 transition min-w-0 max-w-full w-full">
+                <div className="w-6 h-6 rounded-full bg-purple-100 text-purple-900 border border-purple-200 font-extrabold text-[10px] flex items-center justify-center shrink-0">
                   {idx + 1}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <span className="text-[8px] text-slate-500 font-extrabold block uppercase tracking-wider">
+                  <span className="text-[8px] text-slate-500 font-bold block uppercase tracking-wider">
                     {t(`படி ${idx + 1}`, `Step ${idx + 1}`)}
                   </span>
                   <span className="text-xs font-bold text-slate-900 break-words [overflow-wrap:anywhere] [word-break:normal] block">
@@ -631,16 +631,16 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
         </div>
 
         {/* Stage 08 Card: Remedy Track Selection */}
-        <div id="stage-08" className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 min-w-0">
+        <div id="stage-08" className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4 min-w-0">
           <div className="flex items-center justify-between pb-3 border-b border-slate-200">
             <div className="flex items-center gap-2">
-              <span className="w-1.5 h-3 bg-purple-700 rounded mr-1"></span>
+              <span className="w-1.5 h-3.5 bg-purple-700 rounded mr-1"></span>
               <span className="text-[10px] font-bold text-slate-500 uppercase">{t("நிலை 08", "Stage 08")}</span>
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
                 {t("முதன்மையான பரிகார வழிமுறை", "Primary Legal & Administrative Remedy")}
               </h4>
             </div>
-            <span className="text-[10px] bg-purple-100 border border-purple-200 text-purple-900 font-extrabold px-3 py-0.5 rounded-full uppercase tracking-wider">
+            <span className="badge-ai-intel">
               {caseData.stage8?.category || t("அதிகாரபூர்வ அரசு நடவடிக்கை", "Official Revenue Action")}
             </span>
           </div>
@@ -650,10 +650,10 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
               <FileCheck className="h-5 w-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <h4 className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
+              <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                 {t("முதன்மையான மனு படிவம்", "Primary Remedy Form / Petition")}
               </h4>
-              <p className="text-sm font-bold text-slate-900 leading-snug break-words [overflow-wrap:anywhere] [word-break:normal]">
+              <p className="text-xs font-bold text-slate-900 leading-snug break-words [overflow-wrap:anywhere] [word-break:normal]">
                 {caseData.stage8?.primaryRemedy || t("வருவாய் விதிகளின் கீழ் பட்டா உட்பிரிவுக்கு எதிரான ஆட்சேபனை மனு.", "Objection representation under Tamil Nadu Revenue Rules against illegal mutation.")}
               </p>
             </div>
@@ -666,12 +666,12 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
             <RiskGauge score={caseData.stage9?.score || 45} rating={caseData.stage9?.rating || "Medium"} />
           </div>
           
-          <div className="md:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between text-slate-900 min-w-0">
+          <div className="md:col-span-2 bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between text-slate-900 min-w-0">
             <div>
               <span className="text-[9px] font-extrabold text-rose-700 uppercase tracking-wider">
                 {t("அச்சுறுத்தல் கண்டறிதல்", "Risk Factor Evaluation")}
               </span>
-              <h4 className="text-xs font-bold text-slate-800 uppercase mt-1 mb-2">
+              <h4 className="text-xs font-bold text-slate-900 uppercase mt-1 mb-2">
                 {t("இந்த மதிப்பெண் ஏன் கணக்கிடப்பட்டது:", "Why this threat score was calculated:")}
               </h4>
               <ul className="text-xs text-slate-600 space-y-1.5 font-medium">
@@ -711,21 +711,21 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
         </div>
 
         {/* Case Updates & Impact History Panel */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 min-w-0">
+        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4 min-w-0">
           <div className="flex items-center justify-between pb-3 border-b border-slate-200">
             <div className="flex items-center gap-2">
-              <span className="w-1.5 h-3 bg-purple-700 rounded mr-1"></span>
+              <span className="w-1.5 h-3.5 bg-purple-700 rounded mr-1"></span>
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <Clock className="h-4 w-4 text-purple-700 shrink-0" />
+                <Clock className="h-4 w-4 text-purple-800 shrink-0" />
                 {t("வழக்கு அப்டேட்கள் & பதிப்புகள் வரலாறு", "Case Updates & Impact History")}
               </h4>
             </div>
             <button
               type="button"
               onClick={() => setIsUpdateModalOpen(true)}
-              className="px-3.5 py-1.5 bg-purple-900 text-white text-xs font-bold rounded-xl hover:bg-purple-800 transition flex items-center gap-1.5 cursor-pointer shadow-sm shrink-0"
+              className="btn-primary-purple !py-1.5 !px-3 !text-xs"
             >
-              <PlusCircle className="h-3.5 w-3.5 text-purple-300" />
+              <PlusCircle className="h-3.5 w-3.5" />
               <span>{t("➕ வழக்கு அப்டேட்", "➕ Update Case")}</span>
             </button>
           </div>
@@ -733,19 +733,19 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
           {Array.isArray(caseData.updates) && caseData.updates.length > 0 ? (
             <div className="space-y-3">
               {caseData.updates.map((evt, idx) => (
-                <div key={evt.id || idx} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-1 min-w-0">
+                <div key={evt.id || idx} className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1 min-w-0">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-[10px] font-black text-purple-900 uppercase tracking-widest bg-purple-100 border border-purple-200 px-2 py-0.5 rounded">
+                    <span className="badge-ai-intel">
                       {evt.type}
                     </span>
                     <span className="text-[10px] text-slate-500 font-semibold">
                       {evt.timestamp ? new Date(evt.timestamp).toLocaleString() : ""}
                     </span>
                   </div>
-                  <h5 className="text-xs font-black text-slate-900 mt-1 break-words">{evt.title}</h5>
+                  <h5 className="text-xs font-bold text-slate-900 mt-1 break-words">{evt.title}</h5>
                   <p className="text-xs text-slate-700 font-medium leading-relaxed break-words [overflow-wrap:anywhere]">{evt.description}</p>
                   {(evt.sourceAuthority || evt.documentRef || evt.dateOfOccurrence) && (
-                    <div className="flex flex-wrap gap-3 text-[10px] text-slate-500 font-bold pt-1">
+                    <div className="flex flex-wrap gap-3 text-[10px] text-slate-500 font-semibold pt-1">
                       {evt.dateOfOccurrence && <span>{t("தேதி", "Date")}: {evt.dateOfOccurrence}</span>}
                       {evt.sourceAuthority && <span>{t("துறை", "Authority")}: {evt.sourceAuthority}</span>}
                       {evt.documentRef && <span>{t("ஆவண எண்", "Ref")}: {evt.documentRef}</span>}
@@ -762,18 +762,18 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
 
           {Array.isArray(caseData.versions) && caseData.versions.length > 0 && (
             <div className="pt-3 border-t border-slate-200 space-y-2">
-              <span className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider block">
+              <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">
                 {t("AI பகுப்பாய்வு பதிப்புகள் (Versions)", "AI Analysis Versions")}
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 {caseData.versions.map((ver, idx) => (
-                  <div key={ver.versionNumber || idx} className="p-3 bg-purple-50/60 border border-purple-200 rounded-xl space-y-1 min-w-0">
-                    <div className="flex items-center justify-between text-[10px] font-black text-purple-900">
+                  <div key={ver.versionNumber || idx} className="p-3 bg-purple-50/50 border border-purple-200 rounded-xl space-y-1 min-w-0">
+                    <div className="flex items-center justify-between text-[10px] font-bold text-purple-900">
                       <span>Version v{ver.versionNumber}</span>
                       <span>{ver.createdAt ? new Date(ver.createdAt).toLocaleDateString() : ""}</span>
                     </div>
                     <p className="text-[11px] text-purple-950 font-bold break-words">{ver.summaryOfChanges}</p>
-                    <div className="text-[10px] text-purple-800 font-semibold flex items-center justify-between pt-1">
+                    <div className="text-[10px] text-purple-900 font-medium flex items-center justify-between pt-1">
                       <span>Risk: {ver.previousRiskScore ?? "-"}% -&gt; {ver.newRiskScore ?? "-"}%</span>
                       <span>Stages: {(ver.changedStages || []).join(", ")}</span>
                     </div>
@@ -798,62 +798,62 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
       </div>
 
       {/* 3. Right Sidebar: Recommended Packages & Billing */}
-      <aside id="stage-10" className="w-full bg-white border border-slate-200 p-5 rounded-2xl flex flex-col space-y-6 print:hidden no-print shadow-sm lg:col-span-2 xl:col-span-1 xl:col-start-3 sticky top-20">
+      <aside id="stage-10" className="w-full bg-white border border-slate-200 p-4 rounded-xl flex flex-col space-y-5 print:hidden no-print shadow-xs lg:col-span-2 xl:col-span-1 xl:col-start-3 sticky top-20">
         
-        <h2 className="text-[10px] font-extrabold text-slate-600 uppercase tracking-widest flex items-center gap-1.5">
-          <Sparkles className="h-4 w-4 text-purple-700" />
+        <h2 className="text-[10px] font-extrabold text-slate-700 uppercase tracking-widest flex items-center gap-1.5">
+          <Sparkles className="h-3.5 w-3.5 text-purple-800" />
           {t("நிலை 10 - வழங்கப்படும் தீர்வு", "Stage 10 - Deliverable Package")}
         </h2>
         
         {/* Package Card */}
-        <div className="bg-purple-50 border-2 border-purple-600 rounded-2xl p-4 shadow-xs relative overflow-hidden flex flex-col justify-between">
-          <div className="absolute top-0 right-0 px-3 py-1 bg-purple-700 text-white text-[9px] font-black rounded-bl-xl uppercase tracking-wider">
+        <div className="bg-purple-50/50 border border-purple-300 rounded-xl p-4 shadow-xs relative overflow-hidden flex flex-col justify-between">
+          <div className="absolute top-0 right-0 px-2.5 py-0.5 bg-purple-800 text-white text-[9px] font-extrabold rounded-bl-lg uppercase tracking-wider">
             {t("பரிந்துரைக்கப்படுகிறது", "Recommended")}
           </div>
           
-          <div className="mt-2">
-            <span className="text-[9px] font-extrabold text-slate-600 uppercase tracking-wider block">
+          <div className="mt-1">
+            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">
               {t("சேவை நிலை", "Service Tier")}
             </span>
-            <h5 className="text-sm font-black text-slate-900 font-display mb-1.5 leading-tight">
+            <h5 className="text-xs font-bold text-slate-900 font-display mb-1.5 leading-tight">
               {caseData.stage10?.packageName || t("முழு ஆலோசனை சேவைத் தொகுப்பு", "Comprehensive Legal Solution Package")}
             </h5>
-            <div className="text-2xl font-black text-purple-800 mb-3">{caseData.stage10?.priceRange || "₹8,500"}</div>
+            <div className="text-xl font-bold text-purple-900 mb-3">{caseData.stage10?.priceRange || "₹8,500"}</div>
             
-            <ul className="text-[11px] text-slate-700 space-y-2 mb-4 font-medium border-t border-purple-200 pt-3">
+            <ul className="text-[11px] text-slate-700 space-y-1.5 mb-3 font-medium border-t border-purple-200 pt-2.5">
               <li className="flex items-start">
-                <span className="text-purple-700 mr-2 font-bold">•</span>
+                <span className="text-purple-800 mr-1.5 font-bold">•</span>
                 <span>{t("தனிப்பயன் வருவாய் ஆட்சேபனை வரைவு", "Custom Revenue Objection Draft")}</span>
               </li>
               <li className="flex items-start">
-                <span className="text-purple-700 mr-2 font-bold">•</span>
+                <span className="text-purple-800 mr-1.5 font-bold">•</span>
                 <span>{t("மாவட்ட பதிவாளர் போலி பத்திர ரத்து மனு", "District Registrar Fraud Cancellation Petition")}</span>
               </li>
               <li className="flex items-start">
-                <span className="text-purple-700 mr-2 font-bold">•</span>
+                <span className="text-purple-800 mr-1.5 font-bold">•</span>
                 <span>{t("சான்றளிக்கப்பட்ட ஆவணங்கள் சரிபார்ப்பு", "Certified Title Document Verification")}</span>
               </li>
             </ul>
           </div>
 
-          <div className="p-3 bg-white border border-purple-200 rounded-xl mb-4">
-            <span className="text-[8px] font-extrabold text-slate-500 uppercase tracking-wider block mb-0.5">
+          <div className="p-2.5 bg-white border border-purple-200 rounded-lg mb-3">
+            <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5">
               {t("சேவை விபரங்கள்", "Package Description")}
             </span>
-            <p className="text-[10px] text-slate-700 font-semibold leading-relaxed">
+            <p className="text-[10px] text-slate-700 font-medium leading-relaxed">
               {caseData.stage10?.description || t("சட்டரீதியான வருவாய் அறிவிப்பு மற்றும் காலவரிசைப்படியான நடவடிக்கை வழிகாட்டி.", "Includes statutory revenue petition drafting and step-by-step action roadmap.")}
             </p>
           </div>
 
-          <div className="text-xs text-center text-purple-900 font-bold bg-purple-200/60 border border-purple-300 py-2 rounded-xl">
+          <div className="text-[11px] text-center text-purple-900 font-bold bg-purple-100 border border-purple-200 py-1.5 rounded-lg">
             {t("சேவை முன்மொழிவு தயார்", "Service Proposal Ready")}
           </div>
         </div>
 
         {/* Live Assistant prompt status log */}
-        <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 space-y-2.5">
+        <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider">
+            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
               {t("உதவியாளர் முனையம்", "Engine Terminal")}
             </span>
             <div className="flex items-center gap-1">
@@ -864,7 +864,7 @@ export function AnalysisDashboard({ caseData, onUpdateCase }: AnalysisDashboardP
             </div>
           </div>
           
-          <div className="p-2.5 bg-white border border-slate-200 rounded-xl text-[10px] font-mono text-slate-700 leading-normal">
+          <div className="p-2 bg-white border border-slate-200 rounded-lg text-[10px] font-mono text-slate-700 leading-normal">
             {`${caseData.stage0?.district || "மாவட்டத்தில்"} பூர்வீக நிலத் தகராறு பகுப்பாய்வு செய்யப்படுகிறது... ${caseData.stage9?.score || 45}% அச்சுறுத்தல் காரணிகளைக் கண்டறிதல்...`}
           </div>
         </div>

@@ -19,7 +19,7 @@ import { PWAInstallButton } from "./components/PWAInstallButton";
 import { usePWA } from "./lib/pwa";
 import { useLanguage, LanguageSelectorButton, LanguageMode } from "./lib/languageContext";
 import { downloadDocumentAsPDF, downloadCompleteCaseReportPDF } from "./lib/pdfExport";
-import { normalizePropertyCase } from "./lib/caseNormalizer";
+import { normalizePropertyCase, mergePropertyCases } from "./lib/caseNormalizer";
 import { CaseErrorBoundary } from "./components/CaseErrorBoundary";
 
 import { 
@@ -188,36 +188,41 @@ export default function App() {
     }
 
     // 2. Fetch cloud cases if user is authenticated
-    if (user) {
-      fetchCloudCases(user.uid)
+    if (currentUid) {
+      fetchCloudCases(currentUid)
         .then((cloudCases) => {
           if (!Array.isArray(cloudCases)) return;
 
-          // Merge cloud cases and local cases by ID to prevent loss of local cases or duplicates
-          const caseMap = new Map<string, PropertyCase>();
-
-          // Add local cases
-          localCases.forEach((c) => {
-            if (c?.id) caseMap.set(c.id, normalizePropertyCase(c));
-          });
-
-          // Add active memory state cases
           setCases((prevCases) => {
+            const mergedMap = new Map<string, PropertyCase>();
+
+            // Seed with in-memory cases
             prevCases.forEach((c) => {
-              if (c?.id) caseMap.set(c.id, normalizePropertyCase(c));
+              if (c?.id) mergedMap.set(c.id, normalizePropertyCase(c));
             });
 
-            // Add cloud cases (updating with latest cloud state if present)
+            // Merge local storage cases
+            localCases.forEach((c) => {
+              if (c?.id) {
+                const existing = mergedMap.get(c.id);
+                mergedMap.set(c.id, existing ? mergePropertyCases(existing, c) : normalizePropertyCase(c));
+              }
+            });
+
+            // Merge cloud cases (version-aware timestamp & field preservation)
             cloudCases.forEach((c) => {
-              if (c?.id) caseMap.set(c.id, normalizePropertyCase(c));
+              if (c?.id) {
+                const existing = mergedMap.get(c.id);
+                mergedMap.set(c.id, existing ? mergePropertyCases(existing, c) : normalizePropertyCase(c));
+              }
             });
 
-            const merged = Array.from(caseMap.values()).map(normalizePropertyCase).sort(
-              (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+            const merged = Array.from(mergedMap.values()).map(normalizePropertyCase).sort(
+              (a, b) => new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime()
             );
 
             try {
-              localStorage.setItem(`unikorn360_cases_${user.uid}`, JSON.stringify(merged));
+              localStorage.setItem(`unikorn360_cases_${currentUid}`, JSON.stringify(merged));
             } catch (e) {
               console.error("Local save error:", e);
             }
@@ -230,7 +235,7 @@ export default function App() {
           // DO NOT execute setCases([])! Retain existing/local cases intact.
         });
     }
-  }, [user]);
+  }, [user?.uid]);
 
   // Save cases locally and to user storage key
   const saveCases = (updatedCases: PropertyCase[]) => {
@@ -326,20 +331,23 @@ export default function App() {
       }
 
       const analyzedData = responseJson;
+      const now = new Date().toISOString();
       
-      const newCase: PropertyCase = {
+      const newCase: PropertyCase = normalizePropertyCase({
         ...analyzedData,
         id: "case_" + Date.now(),
-        createdAt: new Date().toISOString(),
+        createdAt: now,
+        updatedAt: now,
+        revisionNumber: 1,
         rawDescription,
         history: [
           {
             id: "hist_init_" + Date.now(),
-            timestamp: new Date().toISOString(),
+            timestamp: now,
             description: "Case folder created from raw client dispute intake."
           }
         ]
-      };
+      });
 
       const updated = [newCase, ...cases];
       
@@ -364,18 +372,27 @@ export default function App() {
   };
 
   const handleUpdateCase = async (updatedCase: PropertyCase, historyDesc?: string) => {
-    let finalCase = { ...updatedCase };
+    const now = new Date().toISOString();
+    let finalCase = normalizePropertyCase({
+      ...updatedCase,
+      updatedAt: now,
+      revisionNumber: (updatedCase.revisionNumber || 1) + 1
+    });
+
     if (historyDesc) {
       const newEntry = {
         id: "hist_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
-        timestamp: new Date().toISOString(),
+        timestamp: now,
         description: historyDesc
       };
       finalCase.history = [newEntry, ...(finalCase.history || [])];
     }
     const updated = cases.map(c => c.id === finalCase.id ? finalCase : c);
     
-    // Sync with Supabase Cloud Database if user is signed in
+    // 1. Save immediately to local state and localStorage
+    saveCases(updated);
+
+    // 2. Sync with Supabase Cloud Database if user is signed in
     if (user) {
       try {
         await syncCaseToCloud(user.uid, finalCase);
@@ -383,8 +400,6 @@ export default function App() {
         console.error("Failed to sync updated case to cloud:", err);
       }
     }
-    
-    saveCases(updated);
   };
 
   const confirmDeleteCase = async (id: string) => {
@@ -411,14 +426,18 @@ export default function App() {
     const activeCase = cases.find(c => c.id === selectedCaseId);
     if (!activeCase) return;
 
+    const existingDraft = activeCase.customDocumentDraft || {};
     const updatedCase: PropertyCase = {
       ...activeCase,
       customDocumentDraft: {
+        ...existingDraft,
+        title: newTitle,
         documentTitle: newTitle,
+        content: newContent,
         documentContent: newContent
       }
     };
-    handleUpdateCase(updatedCase, historyDesc);
+    handleUpdateCase(updatedCase, historyDesc || "சட்ட நோட்டீஸ் வரைவு புதுப்பிக்கப்பட்டது");
   };
 
   const [isDownloadingGlobalPDF, setIsDownloadingGlobalPDF] = useState(false);

@@ -230,19 +230,21 @@ export const subscribeToAuthChanges = (callback: (userProfile: UserProfile | nul
 
 // ----------------- Database Case Sync Operations -----------------
 export const syncCaseToCloud = async (userId: string, caseData: any) => {
+  const normalized = normalizePropertyCase(caseData);
   const now = new Date().toISOString();
-  const createdAt = caseData?.createdAt || now;
-  const updatedAt = caseData?.updatedAt || now;
+  const createdAt = normalized.createdAt || now;
+  const updatedAt = normalized.updatedAt || now;
 
   const fullCaseData = {
-    ...caseData,
+    ...normalized,
     userId,
     createdAt,
-    updatedAt
+    updatedAt,
+    revisionNumber: normalized.revisionNumber || 1
   };
 
   const payload = {
-    id: caseData.id,
+    id: fullCaseData.id,
     user_id: userId,
     created_at: createdAt,
     updated_at: updatedAt,

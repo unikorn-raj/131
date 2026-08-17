@@ -325,6 +325,8 @@ export interface ImpactSummary {
 export interface PropertyCase {
   id: string;
   createdAt: string;
+  updatedAt?: string;
+  revisionNumber?: number;
   rawDescription: string;
   workspace?: WorkspaceId;
   subWorkspace?: SubWorkspaceId;

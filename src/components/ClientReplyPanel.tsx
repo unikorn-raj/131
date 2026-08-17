@@ -21,8 +21,14 @@ export function ClientReplyPanel({ caseData }: ClientReplyPanelProps) {
     setTimeout(() => setCopiedText(null), 2000);
   };
 
+  const rReply = caseData.clientFacingReply || {} as any;
+  const problemText = rReply.problemIdentified || rReply.summary || caseData.stage2?.realIssue || t("வருவாய் / பத்திரப்பதிவு முரண்பாடுகள் கண்டறியப்பட்டுள்ளன.", "Revenue or registration inconsistencies identified.");
+  const legalText = rReply.legalPosition || rReply.actionableAdvice || caseData.stage2?.rootCauseStatement || t("தமிழ்நாடு நிலச் சட்டங்களின் கீழ் ஆய்வு செய்யப்படுகிறது.", "Evaluated under Tamil Nadu property statutes.");
+  const nextStepText = rReply.immediateNextStep || rReply.actionableAdvice || (Array.isArray(caseData.immediateAction?.nextSteps) && caseData.immediateAction.nextSteps[0]) || t("தேவையான சான்றளிக்கப்பட்ட சொத்து நகல்களைப் பெற வேண்டும்.", "Obtain certified property copies.");
+  const authorityText = rReply.expectedAuthority || caseData.immediateAction?.authorityToApproach || caseData.stage8?.primaryRemedy || t("தொடர்புடைய வருவாய்த் துறை / சார்பதிவாளர் அலுவலகம்.", "Concerned Revenue / SRO Office.");
+  const timelineText = rReply.estimatedTimeline || caseData.immediateAction?.timeframe || t("அரசு நடைமுறை கால வரம்பிற்கு உட்பட்டது.", "As per statutory procedure timeline.");
+
   const getBriefMessage = () => {
-    const { problemIdentified, legalPosition, immediateNextStep, expectedAuthority, estimatedTimeline } = caseData.clientFacingReply || {};
     return `*${t("நிலம்360 சொத்து சட்ட விளக்கம்", "Nilam360 Property Legal Brief")}*
 ----------------------------------------
 ${t("அன்பான", "Dear")} ${caseData.stage0?.clientName || t("வாடிக்கையாளர்", "Client")},
@@ -30,28 +36,39 @@ ${t("அன்பான", "Dear")} ${caseData.stage0?.clientName || t("வாட
 ${t("உங்களது சர்வே எண்.", "Regarding Survey No.")} ${caseData.stage0?.surveyNumber || "N/A"} (${caseData.stage0?.village || "N/A"} ${t("கிராமம்", "Village")}, ${caseData.stage0?.district || "N/A"} ${t("மாவட்டம்", "District")}) ${t("சொத்துத் தகராறு தொடர்பான தொழில்முறை மதிப்பீட்டு அறிக்கை கீழே கொடுக்கப்பட்டுள்ளது:", "property dispute report:")}
 
 🔴 *${t("கண்டறியப்பட்ட பிரச்சனை", "Problem Identified")}:*
-${problemIdentified || t("வருவாய் / பத்திரப்பதிவு முரண்பாடுகள் கண்டறியப்பட்டுள்ளன.", "Revenue or registration inconsistencies identified.")}
+${problemText}
 
 ⚖️ *${t("சட்ட ரீதியான நிலை", "Legal Standing")}:*
-${legalPosition || t("தமிழ்நாடு நிலச் சட்டங்களின் கீழ் ஆய்வு செய்யப்படுகிறது.", "Evaluated under Tamil Nadu property statutes.")}
+${legalText}
 
 📌 *${t("உடனடி அடுத்த கட்ட நடவடிக்கை", "Immediate Next Step")}:*
-${immediateNextStep || t("தேவையான சான்றளிக்கப்பட்ட சொத்து நகல்களைப் பெற வேண்டும்.", "Obtain certified property copies.")}
+${nextStepText}
 
 🏢 *${t("அணுக வேண்டிய அதிகாரி / மன்றம்", "Target Forum / Authority")}:*
-${expectedAuthority || t("தொடர்புடைய வருவாய்த் துறை / சார்பதிவாளர் அலுவலகம்.", "Concerned Revenue / SRO Office.")}
+${authorityText}
 
 ⏳ *${t("மதிப்பிடப்பட்ட கால அளவு", "Estimated Timeline")}:*
-${estimatedTimeline || t("அரசு நடைமுறை கால வரம்பிற்கு உட்பட்டது.", "As per statutory procedure timeline.")}
+${timelineText}
 
 ${t("வாழ்த்துக்களுடன்,", "Warm regards,")}
 *${t("நிலம்360 சொத்து ஆலோசனை குழு", "Nilam360 Legal Intelligence Team")}*`;
   };
 
-  const rReply = caseData.clientFacingReply || {} as any;
-  const rDocs = caseData.documentsRequired || { mandatory: [], revenue: [], family: [], court: [], other: [] };
-  const rAction = caseData.immediateAction || { within24Hours: [], within7Days: [], within30Days: [] };
+  const rDocs = caseData.documentsRequired || { mandatory: [], revenue: [], family: [], court: [], other: [], available: [], missing: [], optional: [] };
+  const rAction = caseData.immediateAction || { within24Hours: [], within7Days: [], within30Days: [], nextSteps: [] };
   const rPackage = caseData.servicePackage || { recommendedPackage: "", deliverables: [], professionalFee: "", expectedOutcome: "" };
+
+  const actions24 = (rAction.within24Hours && rAction.within24Hours.length > 0) 
+    ? rAction.within24Hours 
+    : ((rAction.nextSteps && rAction.nextSteps.length > 0) ? [rAction.nextSteps[0]] : ["அசல் ஆவணங்களின் சான்றளிக்கப்பட்ட நகல்களை உடனடியாகப் பாதுகாக்கவும்."]);
+  
+  const actions7 = (rAction.within7Days && rAction.within7Days.length > 0)
+    ? rAction.within7Days
+    : ((rAction.nextSteps && rAction.nextSteps.length > 1) ? [rAction.nextSteps[1]] : ["சார்பதிவாளர் அலுவலகத்தில் வில்லங்கச் சான்றிதழ் (EC) பெற விண்ணப்பிக்கவும்."]);
+
+  const actions30 = (rAction.within30Days && rAction.within30Days.length > 0)
+    ? rAction.within30Days
+    : ((rAction.nextSteps && rAction.nextSteps.length > 2) ? rAction.nextSteps.slice(2) : ["வருவாய் கோட்டாட்சியர் / உரிமையியல் நீதிமன்றத்தில் உரிய மனு தாக்கல் செய்யவும்."]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -97,7 +114,7 @@ ${t("வாழ்த்துக்களுடன்,", "Warm regards,")}
               <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                 {t("அ. கண்டறியப்பட்ட பிரச்சனை", "A. Identified Core Dispute")}
               </span>
-              <p className="text-slate-900 font-bold text-xs">{rReply.problemIdentified}</p>
+              <p className="text-slate-900 font-bold text-xs">{problemText}</p>
             </div>
 
             {/* Card 2: Legal Position */}
@@ -105,7 +122,7 @@ ${t("வாழ்த்துக்களுடன்,", "Warm regards,")}
               <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                 {t("ஆ. சட்ட ரீதியான நிலை", "B. Statutory & Legal Standing")}
               </span>
-              <p className="text-slate-700 font-medium">{rReply.legalPosition}</p>
+              <p className="text-slate-700 font-medium">{legalText}</p>
             </div>
 
             {/* Card 3: Next Steps */}
@@ -113,7 +130,7 @@ ${t("வாழ்த்துக்களுடன்,", "Warm regards,")}
               <span className="text-[9px] font-bold text-purple-900 uppercase tracking-wider block mb-1">
                 {t("இ. உடனடி அடுத்த கட்ட நடவடிக்கை", "C. Immediate Recommended Step")}
               </span>
-              <p className="text-purple-950 font-bold text-xs leading-tight">{rReply.immediateNextStep}</p>
+              <p className="text-purple-950 font-bold text-xs leading-tight">{nextStepText}</p>
             </div>
 
             {/* Grid for Authority & Timeline */}
@@ -122,13 +139,13 @@ ${t("வாழ்த்துக்களுடன்,", "Warm regards,")}
                 <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                   {t("ஈ. அணுக வேண்டிய அதிகாரி", "D. Target Forum / Authority")}
                 </span>
-                <p className="font-bold text-slate-900 text-xs">{rReply.expectedAuthority}</p>
+                <p className="font-bold text-slate-900 text-xs">{authorityText}</p>
               </div>
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
                 <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                   {t("உ. மதிப்பிடப்பட்ட கால அளவு", "E. Estimated Timeline")}
                 </span>
-                <p className="font-bold text-purple-900 text-xs">{rReply.estimatedTimeline}</p>
+                <p className="font-bold text-purple-900 text-xs">{timelineText}</p>
               </div>
             </div>
           </div>
@@ -154,7 +171,7 @@ ${t("வாழ்த்துக்களுடன்,", "Warm regards,")}
                 {t("24 மணி நேரத்திற்குள் (அவசரமானவை)", "Within 24 Hours (Urgent)")}
               </span>
               <ul className="space-y-1">
-                {(rAction.within24Hours || []).map((act: string, idx: number) => (
+                {actions24.map((act: string, idx: number) => (
                   <li key={idx} className="text-xs text-slate-700 flex items-start gap-2 font-medium">
                     <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0" />
                     <span>{act}</span>
@@ -169,7 +186,7 @@ ${t("வாழ்த்துக்களுடன்,", "Warm regards,")}
                 {t("7 நாட்களுக்குள் (வழிமுறைகள்)", "Within 7 Days (Procedural)")}
               </span>
               <ul className="space-y-1">
-                {(rAction.within7Days || []).map((act: string, idx: number) => (
+                {actions7.map((act: string, idx: number) => (
                   <li key={idx} className="text-xs text-slate-700 flex items-start gap-2 font-medium">
                     <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-purple-700 shrink-0" />
                     <span>{act}</span>
@@ -184,7 +201,7 @@ ${t("வாழ்த்துக்களுடன்,", "Warm regards,")}
                 {t("30 நாட்களுக்குள் (தீர்வு)", "Within 30 Days (Resolution)")}
               </span>
               <ul className="space-y-1">
-                {(rAction.within30Days || []).map((act: string, idx: number) => (
+                {actions30.map((act: string, idx: number) => (
                   <li key={idx} className="text-xs text-slate-700 flex items-start gap-2 font-medium">
                     <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-slate-500 shrink-0" />
                     <span>{act}</span>

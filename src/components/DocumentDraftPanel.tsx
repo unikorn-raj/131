@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { PropertyCase } from "../types";
 import { 
   FileText, Copy, Check, Sparkles, Send, RefreshCw, 
-  ChevronRight, CornerDownRight, HelpCircle, ShieldCheck, QrCode, Download
+  ChevronRight, CornerDownRight, HelpCircle, ShieldCheck, QrCode, Download, CheckCircle2, Cloud
 } from "lucide-react";
 import { generateDocumentSeal, DocumentSealInfo } from "../lib/security";
 import { supabase } from "../lib/supabase";
@@ -17,10 +17,16 @@ interface DocumentDraftPanelProps {
 
 export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPanelProps) {
   const { langMode, t } = useLanguage();
-  const [draftTitle, setDraftTitle] = useState(() => caseData.customDocumentDraft?.documentTitle || "சட்ட அறிவிப்பு / மனு");
-  const [draftContent, setDraftContent] = useState(() => caseData.customDocumentDraft?.documentContent || "");
-  const [originalTitle, setOriginalTitle] = useState(() => caseData.customDocumentDraft?.documentTitle || "சட்ட அறிவிப்பு / மனு");
-  const [originalContent, setOriginalContent] = useState(() => caseData.customDocumentDraft?.documentContent || "");
+  
+  const initialTitle = caseData.customDocumentDraft?.documentTitle || caseData.customDocumentDraft?.title || "சட்ட அறிவிப்பு / மனு";
+  const initialContent = caseData.customDocumentDraft?.documentContent || caseData.customDocumentDraft?.content || "";
+
+  const [draftTitle, setDraftTitle] = useState(() => initialTitle);
+  const [draftContent, setDraftContent] = useState(() => initialContent);
+  const [originalTitle, setOriginalTitle] = useState(() => initialTitle);
+  const [originalContent, setOriginalContent] = useState(() => initialContent);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("saved");
+  
   const [instructions, setInstructions] = useState("");
   const [isRefining, setIsRefining] = useState(false);
   const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
@@ -28,16 +34,23 @@ export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPan
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [sealInfo, setSealInfo] = useState<DocumentSealInfo | null>(null);
 
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Sync state if caseData changes from outside (e.g. cloud sync or different case selected)
   useEffect(() => {
-    if (caseData.customDocumentDraft?.documentTitle) {
-      setDraftTitle(caseData.customDocumentDraft.documentTitle);
-      setOriginalTitle(caseData.customDocumentDraft.documentTitle);
+    const nextTitle = caseData.customDocumentDraft?.documentTitle || caseData.customDocumentDraft?.title || "சட்ட அறிவிப்பு / மனு";
+    const nextContent = caseData.customDocumentDraft?.documentContent || caseData.customDocumentDraft?.content || "";
+
+    // Only update if fundamentally different and user is not currently in an active debounce
+    if (nextTitle !== originalTitle && !debounceTimerRef.current) {
+      setDraftTitle(nextTitle);
+      setOriginalTitle(nextTitle);
     }
-    if (caseData.customDocumentDraft?.documentContent) {
-      setDraftContent(caseData.customDocumentDraft.documentContent);
-      setOriginalContent(caseData.customDocumentDraft.documentContent);
+    if (nextContent !== originalContent && !debounceTimerRef.current) {
+      setDraftContent(nextContent);
+      setOriginalContent(nextContent);
     }
-  }, [caseData.id, caseData.customDocumentDraft?.documentTitle, caseData.customDocumentDraft?.documentContent]);
+  }, [caseData.id, caseData.updatedAt]);
 
   useEffect(() => {
     if (caseData.id && draftContent) {
@@ -45,17 +58,64 @@ export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPan
     }
   }, [caseData.id, draftContent]);
 
+  // Clean up debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
+  const triggerSave = (titleToSave: string, contentToSave: string, desc?: string) => {
+    setSaveStatus("saving");
+    try {
+      onUpdateDraft(titleToSave, contentToSave, desc);
+      setOriginalTitle(titleToSave);
+      setOriginalContent(contentToSave);
+      setTimeout(() => setSaveStatus("saved"), 350);
+    } catch {
+      setSaveStatus("idle");
+    }
+  };
+
+  const handleTitleChange = (newTitle: string) => {
+    setDraftTitle(newTitle);
+    setSaveStatus("saving");
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      triggerSave(newTitle, draftContent, `வரைவுத் தலைப்பு மாற்றப்பட்டது: "${newTitle}"`);
+      debounceTimerRef.current = null;
+    }, 1200);
+  };
+
+  const handleContentChange = (newContent: string) => {
+    setDraftContent(newContent);
+    setSaveStatus("saving");
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      triggerSave(draftTitle, newContent, "வரைவு உள்ளடக்கங்கள் மாற்றப்பட்டது");
+      debounceTimerRef.current = null;
+    }, 1200);
+  };
+
   const handleTitleBlur = () => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
     if (draftTitle !== originalTitle) {
-      onUpdateDraft(draftTitle, draftContent, `வரைவுத் தலைப்பு மாற்றப்பட்டது: "${draftTitle}"`);
-      setOriginalTitle(draftTitle);
+      triggerSave(draftTitle, draftContent, `வரைவுத் தலைப்பு மாற்றப்பட்டது: "${draftTitle}"`);
     }
   };
 
   const handleContentBlur = () => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
     if (draftContent !== originalContent) {
-      onUpdateDraft(draftTitle, draftContent, "வரைவு உள்ளடக்கங்கள் கைமுறையாக மாற்றப்பட்டது");
-      setOriginalContent(draftContent);
+      triggerSave(draftTitle, draftContent, "வரைவு உள்ளடக்கங்கள் கைமுறையாக மாற்றப்பட்டது");
     }
   };
 
@@ -89,6 +149,11 @@ export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPan
   const handleRefine = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!instructions.trim()) return;
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
 
     setIsRefining(true);
     setErrorMessage(null);
@@ -134,16 +199,18 @@ export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPan
       if (!data) {
         throw new Error("வரைவு எஞ்சின் செல்லுபடியாகும் தரவு வழங்கவில்லை.");
       }
-      setDraftTitle(data.documentTitle);
-      setDraftContent(data.documentContent);
+      
+      const newTitle = data.documentTitle || draftTitle;
+      const newContent = data.documentContent || draftContent;
+
+      setDraftTitle(newTitle);
+      setDraftContent(newContent);
       
       const instrSnippet = instructions.length > 35 
         ? instructions.slice(0, 35) + "..." 
         : instructions;
-      onUpdateDraft(data.documentTitle, data.documentContent, `AI மூலம் வரைவு மேம்படுத்தப்பட்டது: "${instrSnippet}"`);
       
-      setOriginalTitle(data.documentTitle);
-      setOriginalContent(data.documentContent);
+      triggerSave(newTitle, newContent, `AI மூலம் வரைவு மேம்படுத்தப்பட்டது: "${instrSnippet}"`);
       setInstructions(""); // clear instructions
     } catch (err: any) {
       console.error(err);
@@ -157,26 +224,39 @@ export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPan
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       
       {/* Left Column: Interactive drafting viewer/editor (8 cols) */}
-      <div className="lg:col-span-8 flex flex-col h-full space-y-4 print:w-full print:border-none print:shadow-none">
-        <div className="bg-white rounded-xl border border-slate-200 shadow-xs flex flex-col h-[520px] overflow-hidden print:h-auto print:border-none print:shadow-none print:overflow-visible">
+      <div className="lg:col-span-8 flex flex-col space-y-4 print:w-full print:border-none print:shadow-none">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-xs flex flex-col min-h-[580px] overflow-hidden print:min-h-0 print:border-none print:shadow-none print:overflow-visible">
           
           {/* Draft header */}
-          <div className="bg-slate-50 px-5 py-3 border-b border-slate-200 flex items-center justify-between print:bg-white print:border-b-2 print:border-slate-800 print:px-0">
-            <div className="flex items-center gap-2">
+          <div className="bg-slate-50 px-5 py-3 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 print:bg-white print:border-b-2 print:border-slate-800 print:px-0">
+            <div className="flex items-center gap-2 flex-1 min-w-[240px]">
               <span className="w-1.5 h-3.5 bg-purple-700 rounded mr-1"></span>
-              <FileText className="h-4 w-4 text-purple-700 print:hidden no-print" />
+              <FileText className="h-4 w-4 text-purple-700 print:hidden no-print shrink-0" />
               <input 
                 type="text" 
                 value={draftTitle} 
-                onChange={(e) => {
-                  setDraftTitle(e.target.value);
-                }}
+                onChange={(e) => handleTitleChange(e.target.value)}
                 onBlur={handleTitleBlur}
-                className="font-bold text-slate-900 text-xs bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-purple-200 rounded px-1.5 py-0.5 w-[280px] md:w-[420px] font-display print:text-lg print:text-slate-900 print:w-full"
+                className="font-bold text-slate-900 text-xs bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-purple-200 rounded px-1.5 py-0.5 w-full max-w-[420px] font-display print:text-lg print:text-slate-900"
               />
             </div>
 
             <div className="flex items-center gap-2 print:hidden no-print">
+              {/* Real-time Save Status Indicator */}
+              <div className="flex items-center gap-1 px-2 py-1 rounded bg-slate-100 border border-slate-200 text-[10px] font-semibold text-slate-600">
+                {saveStatus === "saving" ? (
+                  <>
+                    <RefreshCw className="h-3 w-3 animate-spin text-purple-600" />
+                    <span>{t("சேமிக்கப்படுகிறது...", "Saving...")}</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                    <span>{t("சேமிக்கப்பட்டது", "Saved")}</span>
+                  </>
+                )}
+              </div>
+
               <button
                 type="button"
                 onClick={handleDownloadPDF}
@@ -218,7 +298,7 @@ export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPan
           </div>
 
           {/* Draft editor text area */}
-          <div className="flex-1 p-5 relative bg-slate-50/50 print:bg-white print:p-0">
+          <div className="flex-1 p-5 relative bg-slate-50/50 flex flex-col print:bg-white print:p-0">
             {isRefining && (
               <div className="absolute inset-0 bg-white/85 backdrop-blur-xs flex flex-col items-center justify-center gap-3 z-10 print:hidden no-print">
                 <RefreshCw className="animate-spin h-8 w-8 text-purple-700" />
@@ -227,11 +307,9 @@ export function DocumentDraftPanel({ caseData, onUpdateDraft }: DocumentDraftPan
             )}
             <textarea
               value={draftContent}
-              onChange={(e) => {
-                setDraftContent(e.target.value);
-              }}
+              onChange={(e) => handleContentChange(e.target.value)}
               onBlur={handleContentBlur}
-              className="w-full h-[360px] font-mono text-[11px] text-slate-800 p-4 bg-white border border-slate-200 rounded-xl leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-600 transition shadow-3xs print:hidden"
+              className="w-full min-h-[420px] flex-1 font-mono text-[11px] text-slate-800 p-4 bg-white border border-slate-200 rounded-xl leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-600 transition shadow-3xs print:hidden"
               placeholder="வழக்கு மதிப்பீடு வரைவு இங்கே தோன்றும்..."
             />
 

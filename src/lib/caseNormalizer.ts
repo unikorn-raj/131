@@ -401,6 +401,11 @@ export function normalizePropertyCase(rawCase: any): PropertyCase {
   // documentsRequired (all array fields always arrays)
   const rawDocsReq = (rawCase.documentsRequired && typeof rawCase.documentsRequired === "object") ? rawCase.documentsRequired : {};
   const documentsRequired: DocumentsRequired = {
+    mandatory: ensureStringArray(rawDocsReq.mandatory),
+    revenue: ensureStringArray(rawDocsReq.revenue),
+    family: ensureStringArray(rawDocsReq.family),
+    court: ensureStringArray(rawDocsReq.court),
+    other: ensureStringArray(rawDocsReq.other),
     available: ensureStringArray(rawDocsReq.available),
     missing: ensureStringArray(rawDocsReq.missing),
     optional: ensureStringArray(rawDocsReq.optional),
@@ -409,6 +414,9 @@ export function normalizePropertyCase(rawCase: any): PropertyCase {
   // immediateAction (all array fields always arrays)
   const rawAction = (rawCase.immediateAction && typeof rawCase.immediateAction === "object") ? rawCase.immediateAction : {};
   const immediateAction: ImmediateAction = {
+    within24Hours: ensureStringArray(rawAction.within24Hours),
+    within7Days: ensureStringArray(rawAction.within7Days),
+    within30Days: ensureStringArray(rawAction.within30Days),
     authorityToApproach: typeof rawAction.authorityToApproach === "string" ? rawAction.authorityToApproach : "",
     nextSteps: ensureStringArray(rawAction.nextSteps),
     timeframe: typeof rawAction.timeframe === "string" ? rawAction.timeframe : "",
@@ -425,23 +433,47 @@ export function normalizePropertyCase(rawCase: any): PropertyCase {
     recommendedTrack: typeof rawServicePkg.recommendedTrack === "string" ? rawServicePkg.recommendedTrack : "",
   };
 
-  // customDocumentDraft
+  // customDocumentDraft (fully preserve both documentTitle/title and documentContent/content)
   const rawDraft = (rawCase.customDocumentDraft && typeof rawCase.customDocumentDraft === "object") ? rawCase.customDocumentDraft : {};
+  const resolvedDraftTitle = typeof rawDraft.documentTitle === "string" && rawDraft.documentTitle.trim()
+    ? rawDraft.documentTitle
+    : (typeof rawDraft.title === "string" && rawDraft.title.trim() ? rawDraft.title : "சட்ட அறிவிப்பு / மனு");
+  const resolvedDraftContent = typeof rawDraft.documentContent === "string"
+    ? rawDraft.documentContent
+    : (typeof rawDraft.content === "string" ? rawDraft.content : "");
+
   const customDocumentDraft: CustomDocumentDraft = {
-    title: typeof rawDraft.title === "string" ? rawDraft.title : "சட்ட பத்திரம் / Legal Draft",
+    title: resolvedDraftTitle,
+    documentTitle: resolvedDraftTitle,
     category: typeof rawDraft.category === "string" ? rawDraft.category : "",
-    content: typeof rawDraft.content === "string" ? rawDraft.content : "",
+    content: resolvedDraftContent,
+    documentContent: resolvedDraftContent,
     sha256Hash: typeof rawDraft.sha256Hash === "string" ? rawDraft.sha256Hash : "",
+    timestamp: typeof rawDraft.timestamp === "string" ? rawDraft.timestamp : undefined,
+    verificationUrl: typeof rawDraft.verificationUrl === "string" ? rawDraft.verificationUrl : undefined,
     sections: Array.isArray(rawDraft.sections) ? rawDraft.sections : [],
   };
 
-  // clientFacingReply
+  // clientFacingReply (fully preserve problemIdentified, legalPosition, etc.)
   const rawReply = (rawCase.clientFacingReply && typeof rawCase.clientFacingReply === "object") ? rawCase.clientFacingReply : {};
   const clientFacingReply: ClientFacingReply = {
+    problemIdentified: typeof rawReply.problemIdentified === "string" ? rawReply.problemIdentified : "",
+    legalPosition: typeof rawReply.legalPosition === "string" ? rawReply.legalPosition : "",
+    immediateNextStep: typeof rawReply.immediateNextStep === "string" ? rawReply.immediateNextStep : "",
+    expectedAuthority: typeof rawReply.expectedAuthority === "string" ? rawReply.expectedAuthority : "",
+    estimatedTimeline: typeof rawReply.estimatedTimeline === "string" ? rawReply.estimatedTimeline : "",
     summary: typeof rawReply.summary === "string" ? rawReply.summary : "",
     actionableAdvice: typeof rawReply.actionableAdvice === "string" ? rawReply.actionableAdvice : "",
     keyFindings: ensureStringArray(rawReply.keyFindings),
   };
+
+  // canonical timestamps & revision
+  const updatedAt = typeof rawCase.updatedAt === "string" 
+    ? rawCase.updatedAt 
+    : (typeof rawCase.updated_at === "string" ? rawCase.updated_at : createdAt);
+  const revisionNumber = typeof rawCase.revisionNumber === "number"
+    ? rawCase.revisionNumber
+    : (typeof rawCase.revision_number === "number" ? rawCase.revision_number : 1);
 
   // history (always array, preserve existing entries)
   const history: CaseHistoryEntry[] = Array.isArray(rawCase.history)
@@ -471,6 +503,8 @@ export function normalizePropertyCase(rawCase: any): PropertyCase {
   return {
     id,
     createdAt,
+    updatedAt,
+    revisionNumber,
     rawDescription,
     workspace: rawCase.workspace,
     subWorkspace: rawCase.subWorkspace,
@@ -500,6 +534,159 @@ export function normalizePropertyCase(rawCase: any): PropertyCase {
     history,
     updates,
     versions,
+  };
+}
+
+/**
+ * Safely merges two versions of a PropertyCase (e.g. active local/memory state vs freshly fetched cloud state).
+ * 
+ * Rules:
+ * 1. Timestamp & Revision Comparison: The version with the newer updatedAt/createdAt is the primary base.
+ * 2. Non-Destructive Field Retention: Never overwrite populated rich fields (customDocumentDraft,
+ *    clientFacingReply, documentsRequired, immediateAction, stage11, stage12) with empty/blank values.
+ * 3. History & Version De-duplication: Combine history, updates, and versions cleanly.
+ */
+export function mergePropertyCases(caseA: PropertyCase, caseB: PropertyCase): PropertyCase {
+  const normA = normalizePropertyCase(caseA);
+  const normB = normalizePropertyCase(caseB);
+
+  const timeA = new Date(normA.updatedAt || normA.createdAt || 0).getTime();
+  const timeB = new Date(normB.updatedAt || normB.createdAt || 0).getTime();
+
+  // Primary is the newer version, fallback is the older version
+  const primary = timeB > timeA ? normB : normA;
+  const secondary = timeB > timeA ? normA : normB;
+
+  // 1. Merge customDocumentDraft safely
+  const pDraft = primary.customDocumentDraft || {};
+  const sDraft = secondary.customDocumentDraft || {};
+  const pDraftText = (pDraft.documentContent || pDraft.content || "").trim();
+  const sDraftText = (sDraft.documentContent || sDraft.content || "").trim();
+
+  // If primary has text, keep primary. If primary is blank but secondary has text, preserve secondary!
+  const draftSource = pDraftText ? pDraft : (sDraftText ? sDraft : pDraft);
+  const draftTitle = draftSource.documentTitle || draftSource.title || sDraft.documentTitle || sDraft.title || "சட்ட அறிவிப்பு / மனு";
+  const draftContent = pDraftText || sDraftText || "";
+
+  const customDocumentDraft: CustomDocumentDraft = {
+    ...sDraft,
+    ...pDraft,
+    title: draftTitle,
+    documentTitle: draftTitle,
+    content: draftContent,
+    documentContent: draftContent,
+    category: pDraft.category || sDraft.category || "",
+    sha256Hash: pDraft.sha256Hash || sDraft.sha256Hash || "",
+    sections: (pDraft.sections && pDraft.sections.length > 0) ? pDraft.sections : (sDraft.sections || []),
+    timestamp: pDraft.timestamp || sDraft.timestamp,
+    verificationUrl: pDraft.verificationUrl || sDraft.verificationUrl,
+  };
+
+  // 2. Merge clientFacingReply safely
+  const pReply = primary.clientFacingReply || {};
+  const sReply = secondary.clientFacingReply || {};
+  const clientFacingReply: ClientFacingReply = {
+    problemIdentified: pReply.problemIdentified || sReply.problemIdentified || "",
+    legalPosition: pReply.legalPosition || sReply.legalPosition || "",
+    immediateNextStep: pReply.immediateNextStep || sReply.immediateNextStep || "",
+    expectedAuthority: pReply.expectedAuthority || sReply.expectedAuthority || "",
+    estimatedTimeline: pReply.estimatedTimeline || sReply.estimatedTimeline || "",
+    summary: pReply.summary || sReply.summary || "",
+    actionableAdvice: pReply.actionableAdvice || sReply.actionableAdvice || "",
+    keyFindings: (pReply.keyFindings && pReply.keyFindings.length > 0) ? pReply.keyFindings : (sReply.keyFindings || []),
+  };
+
+  // 3. Merge documentsRequired safely
+  const pDocs = primary.documentsRequired || {};
+  const sDocs = secondary.documentsRequired || {};
+  const documentsRequired: DocumentsRequired = {
+    mandatory: (pDocs.mandatory && pDocs.mandatory.length > 0) ? pDocs.mandatory : (sDocs.mandatory || []),
+    revenue: (pDocs.revenue && pDocs.revenue.length > 0) ? pDocs.revenue : (sDocs.revenue || []),
+    family: (pDocs.family && pDocs.family.length > 0) ? pDocs.family : (sDocs.family || []),
+    court: (pDocs.court && pDocs.court.length > 0) ? pDocs.court : (sDocs.court || []),
+    other: (pDocs.other && pDocs.other.length > 0) ? pDocs.other : (sDocs.other || []),
+    available: (pDocs.available && pDocs.available.length > 0) ? pDocs.available : (sDocs.available || []),
+    missing: (pDocs.missing && pDocs.missing.length > 0) ? pDocs.missing : (sDocs.missing || []),
+    optional: (pDocs.optional && pDocs.optional.length > 0) ? pDocs.optional : (sDocs.optional || []),
+  };
+
+  // 4. Merge immediateAction safely
+  const pAction = primary.immediateAction || {};
+  const sAction = secondary.immediateAction || {};
+  const immediateAction: ImmediateAction = {
+    within24Hours: (pAction.within24Hours && pAction.within24Hours.length > 0) ? pAction.within24Hours : (sAction.within24Hours || []),
+    within7Days: (pAction.within7Days && pAction.within7Days.length > 0) ? pAction.within7Days : (sAction.within7Days || []),
+    within30Days: (pAction.within30Days && pAction.within30Days.length > 0) ? pAction.within30Days : (sAction.within30Days || []),
+    authorityToApproach: pAction.authorityToApproach || sAction.authorityToApproach || "",
+    nextSteps: (pAction.nextSteps && pAction.nextSteps.length > 0) ? pAction.nextSteps : (sAction.nextSteps || []),
+    timeframe: pAction.timeframe || sAction.timeframe || "",
+  };
+
+  // 5. Merge servicePackage safely
+  const pPkg = primary.servicePackage || {};
+  const sPkg = secondary.servicePackage || {};
+  const servicePackage: ServicePackage = {
+    recommendedPackage: pPkg.recommendedPackage || sPkg.recommendedPackage || "",
+    deliverables: (pPkg.deliverables && pPkg.deliverables.length > 0) ? pPkg.deliverables : (sPkg.deliverables || []),
+    professionalFee: pPkg.professionalFee || sPkg.professionalFee || "",
+    expectedOutcome: pPkg.expectedOutcome || sPkg.expectedOutcome || "",
+    feeRange: pPkg.feeRange || sPkg.feeRange || "",
+    recommendedTrack: pPkg.recommendedTrack || sPkg.recommendedTrack || "",
+  };
+
+  // 6. History deduplication (ordered chronologically)
+  const historyMap = new Map<string, CaseHistoryEntry>();
+  [...(secondary.history || []), ...(primary.history || [])].forEach((entry) => {
+    if (entry && entry.id) {
+      historyMap.set(entry.id, entry);
+    } else if (entry && entry.timestamp) {
+      historyMap.set(`${entry.timestamp}_${entry.description}`, entry);
+    }
+  });
+  const history = Array.from(historyMap.values()).sort(
+    (a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime()
+  );
+
+  // 7. Updates & Versions deduplication
+  const updatesMap = new Map<string, CaseUpdateEvent>();
+  [...(secondary.updates || []), ...(primary.updates || [])].forEach((u) => {
+    if (u && u.id) updatesMap.set(u.id, u);
+  });
+  const updates = Array.from(updatesMap.values()).sort(
+    (a, b) => new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime()
+  );
+
+  const versionsMap = new Map<number, CaseAnalysisVersion>();
+  [...(secondary.versions || []), ...(primary.versions || [])].forEach((v) => {
+    if (v && typeof v.versionNumber === "number") versionsMap.set(v.versionNumber, v);
+  });
+  const versions = Array.from(versionsMap.values()).sort((a, b) => b.versionNumber - a.versionNumber);
+
+  // 8. Translated variants
+  const translatedVariants = {
+    ...(secondary.translatedVariants || {}),
+    ...(primary.translatedVariants || {})
+  };
+
+  const latestUpdatedAt = new Date(Math.max(timeA, timeB)).toISOString();
+  const revisionNumber = Math.max(primary.revisionNumber || 1, secondary.revisionNumber || 1) + (timeB !== timeA ? 1 : 0);
+
+  return {
+    ...secondary,
+    ...primary,
+    updatedAt: latestUpdatedAt,
+    revisionNumber,
+    customDocumentDraft,
+    clientFacingReply,
+    documentsRequired,
+    immediateAction,
+    servicePackage,
+    stage11: primary.stage11 || secondary.stage11,
+    stage12: primary.stage12 || secondary.stage12,
+    history,
+    updates,
+    versions,
+    translatedVariants,
   };
 }
 
